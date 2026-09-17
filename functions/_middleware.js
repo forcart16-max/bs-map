@@ -1,35 +1,15 @@
-/**
- * Cloudflare Pages Functions middleware.
- * Runs on every request to the site (it sits in /functions at the project
- * root, so its scope is "/*"). It requires HTTP Basic Auth before letting
- * any request through to the static files in /public.
- *
- * Credentials are read from Pages environment variables / secrets:
- *   AUTH_USER  – login
- *   AUTH_PASS  – password
- *
- * Set them with:
- *   npx wrangler pages secret put AUTH_USER
- *   npx wrangler pages secret put AUTH_PASS
- * or via the Cloudflare dashboard → Pages project → Settings → Environment variables.
- *
- * Basic Auth is sent in cleartext-equivalent (base64) but Cloudflare Pages
- * terminates TLS on every request, so credentials are protected in transit
- * as long as you don't disable HTTPS. Browsers cache the credentials for
- * the session once entered, so the user only sees the native login prompt once.
- */
-
 export async function onRequest(context) {
   const { request, env } = context;
 
-  const expectedUser = env.AUTH_USER;
-  const expectedPass = env.AUTH_PASS;
+  const user = env.AUTH_USER;
+  const pass = env.AUTH_PASS;
+  const adminUser = env.AUTH_ADMIN;
+  const adminPass = env.AUTH_ADPASS;
 
-  // Fail closed: if the secrets were never configured, block everything
-  // rather than silently serving the app without protection.
-  if (!expectedUser || !expectedPass) {
+  // Блокуємо сайт, якщо змінні оточення взагалі не налаштовані
+  if ((!user || !pass) && (!adminUser || !adminPass)) {
     return new Response(
-      'Сайт не налаштовано: відсутні змінні середовища AUTH_USER / AUTH_PASS.',
+      'Сайт не налаштовано: відсутні змінні середовища для авторизації.',
       { status: 500 }
     );
   }
@@ -37,8 +17,17 @@ export async function onRequest(context) {
   const authHeader = request.headers.get('Authorization') || '';
   const [scheme, encoded] = authHeader.split(' ');
 
-  if (scheme === 'Basic' && encoded && (await isValid(encoded, expectedUser, expectedPass))) {
-    return context.next();
+  if (scheme === 'Basic' && encoded) {
+    const isUserValid = user && pass && (await isValid(encoded, user, pass));
+    const isAdminValid = adminUser && adminPass && (await isValid(encoded, adminUser, adminPass));
+
+    if (isUserValid || isAdminValid) {
+      // Можна передавати роль далі в запит (наприклад, для API або бекенду)
+      const newHeaders = new Headers(request.headers);
+      newHeaders.set('X-Auth-Role', isAdminValid ? 'admin' : 'user');
+
+      return context.next(new Request(request, { headers: newHeaders }));
+    }
   }
 
   return new Response('Потрібна авторизація / Authentication required.', {
@@ -69,8 +58,6 @@ async function isValid(encoded, expectedUser, expectedPass) {
   return userOk && passOk;
 }
 
-// Constant-time string comparison (via SHA-256 digests) so response timing
-// doesn't leak how many characters of the login/password were correct.
 async function timingSafeEqual(a, b) {
   const enc = new TextEncoder();
   const [digestA, digestB] = await Promise.all([
@@ -79,6 +66,9 @@ async function timingSafeEqual(a, b) {
   ]);
   const bytesA = new Uint8Array(digestA);
   const bytesB = new Uint8Array(digestB);
+  
+  if (bytesA.length !== bytesB.length) return false;
+  
   let diff = 0;
   for (let i = 0; i < bytesA.length; i++) diff |= bytesA[i] ^ bytesB[i];
   return diff === 0;
