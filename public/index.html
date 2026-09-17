@@ -1572,6 +1572,140 @@ renderBSList();
 renderAddrList();
 renderSaveList();
 updateProjectHeader();
+var EXPORT_UNSUPPORTED_LAYERS = {};
+var TILE_ATTR_TEXT = {
+  streets: 'Tiles © Esri — Esri, HERE, Garmin, FAO, NOAA, USGS',
+  gray: 'Tiles © Esri — Esri, HERE, Garmin, FAO, NOAA, USGS',
+  dark: 'Tiles © Esri — Esri, HERE, Garmin, FAO, NOAA, USGS',
+  topo: 'Tiles © Esri — Esri, HERE, Garmin, FAO, NOAA, USGS',
+  imagery: 'Tiles © Esri — Esri, HERE, Garmin, FAO, NOAA, USGS'
+};
+
+function hexToRgba(hex, alpha){
+  hex = String(hex || '#7c9cff').replace('#','');
+  if (hex.length === 3) hex = hex.split('').map(function(c){ return c + c; }).join('');
+  var r = parseInt(hex.substring(0,2),16) || 0, g = parseInt(hex.substring(2,4),16) || 0, b = parseInt(hex.substring(4,6),16) || 0;
+  return 'rgba(' + r + ',' + g + ',' + b + ',' + alpha + ')';
+}
+
+async function renderMapCanvas(){
+  if (EXPORT_UNSUPPORTED_LAYERS[state.tileLayer]) {
+    Toast.show('Шар «' + EXPORT_UNSUPPORTED_LAYERS[state.tileLayer] + '» не підтримує експорт зображення. Оберіть інший шар, напр. «Вулиці (Esri)».', 'error');
+    return null;
+  }
+
+  var container = map.getContainer();
+  var width = container.clientWidth;
+  var height = container.clientHeight;
+
+  var canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  var ctx = canvas.getContext('2d');
+
+  // 1. Малюємо завантажені тайли карти
+  var tileImgs = container.querySelectorAll('.leaflet-tile-container img');
+  var mapRect = container.getBoundingClientRect();
+
+  for (var img of tileImgs) {
+    if (!img.complete || img.naturalWidth === 0) continue;
+    var rect = img.getBoundingClientRect();
+    var x = rect.left - mapRect.left;
+    var y = rect.top - mapRect.top;
+    try {
+      ctx.drawImage(img, x, y, rect.width, rect.height);
+    } catch (e) {
+      // Ігноруємо поодинокі тайли з CORS помилками
+    }
+  }
+
+  // 2. Малюємо сектори БС
+  state.bs.forEach(function(item){
+    var centerPt = map.latLngToContainerPoint([item.lat, item.lng]);
+    var latLngs = sectorLatLngs(item.lat, item.lng, item.azimuth, item.beam, item.radius);
+    
+    if (latLngs.length < 2) return;
+
+    ctx.beginPath();
+    var firstPt = map.latLngToContainerPoint(latLngs[0]);
+    ctx.moveTo(firstPt.x, firstPt.y);
+
+    for (var i = 1; i < latLngs.length; i++) {
+      var pt = map.latLngToContainerPoint(latLngs[i]);
+      ctx.lineTo(pt.x, pt.y);
+    }
+    ctx.closePath();
+
+    ctx.fillStyle = hexToRgba(item.color, 0.28);
+    ctx.fill();
+    ctx.strokeStyle = item.color;
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // Малюємо маркер центра БС
+    ctx.beginPath();
+    ctx.arc(centerPt.x, centerPt.y, 5, 0, 2 * Math.PI);
+    ctx.fillStyle = item.color;
+    ctx.fill();
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+  });
+
+  // 3. Малюємо адреси
+  state.addresses.forEach(function(item){
+    var pt = map.latLngToContainerPoint([item.lat, item.lng]);
+    ctx.beginPath();
+    ctx.arc(pt.x, pt.y, 6, 0, 2 * Math.PI);
+    ctx.fillStyle = '#0f8f83';
+    ctx.fill();
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  });
+
+  // 4. Додаємо копирайт / атрибуцію в кутку
+  ctx.font = '10px sans-serif';
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+  ctx.fillRect(width - 260, height - 22, 255, 18);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillText(TILE_ATTR_TEXT[state.tileLayer] || 'BSMAP Export', width - 255, height - 9);
+
+  return canvas;
+}
+
+// Події кнопок експорту
+document.getElementById('btnExportPng').addEventListener('click', async function(){
+  Toast.show('Формування PNG…', null);
+  var canvas = await renderMapCanvas();
+  if (!canvas) return;
+  canvas.toBlob(function(blob){
+    triggerDownload(blob, (currentProjectName || 'bsmap') + '.png');
+    Toast.show('PNG карти збережено.', 'success');
+  });
+});
+
+document.getElementById('btnExportPdf').addEventListener('click', async function(){
+  Toast.show('Формування PDF…', null);
+  var canvas = await renderMapCanvas();
+  if (!canvas) return;
+
+  var imgData = canvas.toDataURL('image/png');
+  var { jsPDF } = window.jspdf;
+  
+  var orientation = canvas.width > canvas.height ? 'l' : 'p';
+  var pdf = new jsPDF(orientation, 'pt', [canvas.width, canvas.height]);
+  pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+  pdf.save((currentProjectName || 'bsmap') + '.pdf');
+  
+  Toast.show('PDF карти збережено.', 'success');
+});
+
+// Ініціалізація списків при завантаженні
+renderBSList();
+renderAddrList();
+renderSaveList();
+updateProjectHeader();
 </script>
 </body>
 </html>
