@@ -14,8 +14,7 @@ bsmap/
 │  └─ index.html       ← сам застосунок (карта, сектори, UI)
 ├─ functions/
 │  └─ _middleware.js    ← Basic Auth-гейт: перевіряє логін/пароль на КОЖЕН запит
-├─ wrangler.toml
-├─ package.json
+├─ package.json          ← лише для локального деплою через CLI (не обов'язковий для git-деплою)
 └─ README.md
 ```
 
@@ -24,17 +23,30 @@ bsmap/
 як віддадуться файли з `public/`. Без правильних логіна й пароля сайт
 взагалі не відкриється — навіть index.html не завантажиться.
 
+> **Важливо:** у проєкті немає `wrangler.toml`. Якщо ви деплоїте через
+> Git-інтеграцію (Варіант A нижче) і покладете `wrangler.toml` в корінь
+> репозиторію, Cloudflare може розпізнати проєкт як **Workers** замість
+> **Pages** і спробувати виконати `npx wrangler deploy` замість
+> `npx wrangler pages deploy` — деплой впаде з помилкою
+> `It looks like you've run a Workers-specific command in a Pages project`.
+> Тримайте `wrangler.toml` лише локально (не комітьте його), якщо
+> плануєте деплоїти вручну через CLI (Варіант B).
+
 ## Розгортання на Cloudflare
 
-### Варіант A — через дашборд (найпростіше)
+### Варіант A — через дашборд, Git-інтеграція (найпростіше)
 
-1. Створіть git-репозиторій (GitHub/GitLab) і запуште туди цю теку.
+1. Створіть git-репозиторій (GitHub/GitLab) і запуште туди цю теку
+   **без** `wrangler.toml` (я його прибрав із заготовки саме з цієї
+   причини).
 2. У Cloudflare Dashboard → **Workers & Pages** → **Create** → **Pages**
    → **Connect to Git**, оберіть репозиторій.
 3. Build settings:
    - Framework preset: `None`
    - Build command: (залиште порожнім)
    - Build output directory: `public`
+   - Deploy command: (залиште порожнім / за замовчуванням — не вписуйте
+     `wrangler deploy` вручну)
 4. Після створення проєкту зайдіть у **Settings → Environment variables**
    і додайте (як **Secret**, не як звичайну змінну):
    - `AUTH_USER` — логін
@@ -46,25 +58,33 @@ bsmap/
 6. Відкрийте виданий `*.pages.dev` домен (або підключений власний
    домен) — браузер запитає логін/пароль.
 
-### Варіант B — через Wrangler CLI
+**Якщо вже отримали помилку** `Workers-specific command in a Pages
+project`: зайдіть у Settings проєкту → **Builds & deployments** →
+перевірте поле **Deploy command** — якщо там стоїть `npx wrangler
+deploy`, або очистіть його, або замініть на
+`npx wrangler pages deploy public`, і приберіть `wrangler.toml` з
+репозиторію, якщо він там є.
+
+### Варіант B — через Wrangler CLI (без git-інтеграції)
 
 ```bash
 npm install
 npx wrangler login
 
 # один раз — прив'язати секрети до проєкту
-npx wrangler pages secret put AUTH_USER
-npx wrangler pages secret put AUTH_PASS
+npx wrangler pages secret put AUTH_USER --project-name=bsmap
+npx wrangler pages secret put AUTH_PASS --project-name=bsmap
 
 # деплой
 npm run deploy
 ```
 
-Локальна перевірка перед деплоєм (з тими ж секретами):
+Локальна перевірка перед деплоєм:
 
 ```bash
 npx wrangler pages dev public --binding AUTH_USER=admin --binding AUTH_PASS=secret
 ```
+
 
 ## Авторизація — як це працює
 

@@ -6,6 +6,6 @@
     "deploy": "wrangler pages deploy public --project-name=bsmap"
   },
   "devDependencies": {
-    "wrangler": "^3.90.0"
+    "wrangler": "^3.114.17"
   }
 }
