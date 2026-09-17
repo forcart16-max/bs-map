@@ -259,6 +259,17 @@ input[type=color]::-moz-color-swatch{ border-radius:3px; border:none; }
 .lyr-ctrl button:last-child{ border-bottom:none; }
 .lyr-ctrl button:hover{ background:var(--bg-2); color:var(--text-0); }
 .lyr-ctrl button.active{ color:var(--accent); font-weight:600; }
+.lyr-ctrl .lyr-ctrl-divider{ height:1px; background:var(--border-soft); margin:0; }
+.lyr-ctrl button.lyr-ctrl-overlay{ color:var(--text-1); }
+.lyr-ctrl button.lyr-ctrl-overlay.active{ color:var(--accent-2); font-weight:600; }
+.lyr-ctrl button.lyr-ctrl-overlay.active::after{ content:" ✓"; }
+.housenum-label{
+  background:rgba(10,14,19,.82); color:#fff; border:1px solid rgba(255,255,255,.35);
+  border-radius:4px; padding:1px 4px; font:600 10px var(--font-mono); white-space:nowrap;
+  transform:translate(-50%,-50%); pointer-events:none;
+}
+:root[data-theme="light"] .housenum-label{ background:rgba(255,255,255,.9); color:#151b21; border-color:rgba(0,0,0,.25); }
+@media (prefers-color-scheme: light){ :root:not([data-theme="dark"]) .housenum-label{ background:rgba(255,255,255,.9); color:#151b21; border-color:rgba(0,0,0,.25); } }
 .coord-ctrl{
   background:rgba(10,14,19,.78); color:var(--text-1); font-family:var(--font-mono); font-size:11px;
   padding:5px 9px; border-radius:6px; border:1px solid var(--border);
@@ -303,6 +314,7 @@ input[type=color]::-moz-color-swatch{ border-radius:3px; border:none; }
       <button class="icon-btn" id="btnSave" title="Зберегти">💾</button>
       <button class="icon-btn" id="btnSaveAs" title="Зберегти як…">📑</button>
       <button class="icon-btn" id="btnNew" title="Новий проєкт">🗋</button>
+      <button class="icon-btn" id="btnHome" title="До Миколаєва">🏠</button>
       <button class="icon-btn" id="btnTheme" title="Перемкнути тему">◐</button>
     </div>
   </div>
@@ -596,11 +608,13 @@ var uid = (function(){ var n = 0; return function(){ n += 1; return 'id' + Date.
 
 var PALETTE = ['#ff8a3d','#54d6c9','#f2555f','#f2c94c','#7c9cff','#c084fc','#3ddb96','#f472b6'];
 
+var HOME_VIEW = { center: [46.9750, 31.9946], zoom: 13 }; // Миколаїв
+
 var state = {
   bs: [],        // {id, lat, lng, azimuth, beam, radius, color, label}
   addresses: [],  // {id, lat, lng, title}
-  view: { center: [50.4501, 30.5234], zoom: 11 },
-  tileLayer: 'voyager'
+  view: HOME_VIEW,
+  tileLayer: 'streets'
 };
 var currentProjectName = null;
 var dirty = false;
@@ -610,7 +624,8 @@ function loadWorkspace(){
   if (w) {
     state.bs = Array.isArray(w.bs) ? w.bs : [];
     state.addresses = Array.isArray(w.addresses) ? w.addresses : [];
-    state.view = w.view || state.view;
+    // Карта завжди відкривається на Миколаєві — збережену позицію перегляду
+    // (пан/зум) навмисно НЕ відновлюємо при старті. Сектори/адреси/шар — відновлюємо.
     state.tileLayer = w.tileLayer || state.tileLayer;
   }
   currentProjectName = lsGet(LS_CURRENT, null);
@@ -635,10 +650,11 @@ var map = L.map('map', {
 });
 
 /* Free, no-API-key raster basemaps only. CARTO's basemaps.cartocdn.com now requires
-   an account API key, and tile.openstreetmap.org actively blocks third-party apps
-   that don't meet its volunteer-run usage policy — so neither is used here.
-   Esri's public ArcGIS Online "World" basemaps and Wikimedia's OSM-styled tiles
-   are free, keyless, and explicitly serve third-party apps. */
+   an account API key, tile.openstreetmap.org actively blocks third-party apps
+   that don't meet its volunteer-run usage policy, and Wikimedia's Maps Terms of
+   Use (since 2021) explicitly forbid use by any site outside the Wikimedia
+   projects — so none of those are used here. Esri's public ArcGIS Online
+   "World" basemaps are free, keyless, and explicitly allow third-party apps. */
 var ESRI_ATTR = 'Tiles &copy; <a href="https://www.esri.com">Esri</a> &mdash; Esri, HERE, Garmin, FAO, NOAA, USGS';
 function esriLayer(service, opts){
   return L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/' + service + '/MapServer/tile/{z}/{y}/{x}',
@@ -655,17 +671,103 @@ var TILE_LAYERS = {
     esriLayer('Canvas/World_Dark_Gray_Reference', { maxNativeZoom: 16, maxZoom: 20 })
   ]),
   topo: esriLayer('World_Topo_Map'),
-  imagery: esriLayer('World_Imagery', { maxZoom: 19 }),
-  osm: L.tileLayer('https://maps.wikimedia.org/osm-intl/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, style by Wikimedia'
-  })
+  imagery: esriLayer('World_Imagery', { maxZoom: 19 })
 };
-var TILE_LABELS = { streets: 'Вулиці (Esri)', gray: 'Світла (Esri Gray)', dark: 'Темна (Esri Dark)', topo: 'Рельєф (Esri Topo)', imagery: 'Супутник (Esri)', osm: 'OSM (Wikimedia)' };
+var TILE_LABELS = { streets: 'Вулиці (Esri)', gray: 'Світла (Esri Gray)', dark: 'Темна (Esri Dark)', topo: 'Рельєф (Esri Topo)', imagery: 'Супутник (Esri)' };
 
 if (!TILE_LAYERS[state.tileLayer]) state.tileLayer = 'streets';
 (TILE_LAYERS[state.tileLayer] || TILE_LAYERS.streets).addTo(map);
 L.control.zoom({ position: 'bottomleft' }).addTo(map);
+
+/* ============================================================
+   HOUSE NUMBERS OVERLAY — addr:housenumber labels from OpenStreetMap
+   (Overpass API is free, keyless, and explicitly meant for this kind
+   of programmatic third-party querying — unlike Wikimedia's tile CDN)
+   ============================================================ */
+var HouseNumbers = (function(){
+  // overpass-api.de recently tightened its CORS policy and now rejects
+  // browser requests outright (406, no Access-Control-Allow-Origin) — so we
+  // try a couple of community mirrors that are known to serve browser apps.
+  var OVERPASS_URLS = [
+    'https://overpass.kumi.systems/api/interpreter',
+    'https://overpass.private.coffee/api/interpreter',
+    'https://overpass-api.de/api/interpreter'
+  ];
+  var ATTR_TEXT = 'номери будинків: © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+  var minZoom = 17;
+  var maxResults = 1200;
+  var layer = L.layerGroup();
+  var on = false, timer = null, reqSeq = 0;
+
+  function labelIcon(text){
+    return L.divIcon({ className: '', html: '<div class="housenum-label">' + escapeHtml(text) + '</div>', iconSize: [0,0], iconAnchor: [0,0] });
+  }
+
+  function fetchFrom(urls, i, query){
+    if (i >= urls.length) return Promise.reject(new Error('all mirrors failed'));
+    return fetch(urls[i], { method: 'POST', body: 'data=' + encodeURIComponent(query) })
+      .then(function(r){ if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
+      .catch(function(){ return fetchFrom(urls, i + 1, query); });
+  }
+
+  function refresh(){
+    if (!on) return;
+    layer.clearLayers();
+    if (map.getZoom() < minZoom) {
+      Toast.show('Наблизьте карту (зум ' + minZoom + '+), щоб побачити номери будинків.', null);
+      return;
+    }
+    var b = map.getBounds();
+    var bbox = b.getSouth() + ',' + b.getWest() + ',' + b.getNorth() + ',' + b.getEast();
+    var query = '[out:json][timeout:25];(way["building"]["addr:housenumber"](' + bbox + ');node["addr:housenumber"](' + bbox + '););out center;';
+    var mySeq = ++reqSeq;
+    fetchFrom(OVERPASS_URLS, 0, query)
+      .then(function(data){
+        if (!on || mySeq !== reqSeq) return; // stale response or toggled off meanwhile
+        var els = (data && data.elements) || [];
+        if (els.length > maxResults) {
+          Toast.show('Забагато будинків у видимій області (' + els.length + '). Наблизьте карту ще трохи.', 'error');
+          return;
+        }
+        els.forEach(function(el){
+          var lat = el.type === 'node' ? el.lat : (el.center && el.center.lat);
+          var lon = el.type === 'node' ? el.lon : (el.center && el.center.lon);
+          var num = el.tags && el.tags['addr:housenumber'];
+          if (lat == null || lon == null || !num) return;
+          L.marker([lat, lon], { icon: labelIcon(num), interactive: false, keyboard: false }).addTo(layer);
+        });
+      })
+      .catch(function(){
+        if (mySeq !== reqSeq) return;
+        Toast.show('Не вдалося завантажити номери будинків (жоден дзеркальний сервер Overpass не відповів). Спробуйте пізніше.', 'error');
+      });
+  }
+
+  function scheduleRefresh(){
+    if (!on) return;
+    clearTimeout(timer);
+    timer = setTimeout(refresh, 600);
+  }
+
+  function enable(){
+    on = true;
+    layer.addTo(map);
+    map.attributionControl.addAttribution(ATTR_TEXT);
+    refresh();
+  }
+  function disable(){
+    on = false;
+    reqSeq++; // invalidate any in-flight request
+    clearTimeout(timer);
+    layer.clearLayers();
+    map.removeLayer(layer);
+    map.attributionControl.removeAttribution(ATTR_TEXT);
+  }
+  function toggle(){ if (on) disable(); else enable(); return on; }
+
+  map.on('moveend zoomend', scheduleRefresh);
+  return { toggle: toggle, isOn: function(){ return on; }, minZoom: minZoom };
+})();
 
 /* custom layer switcher, no external icon assets */
 var LayerSwitcher = L.Control.extend({
@@ -683,6 +785,13 @@ var LayerSwitcher = L.Control.extend({
         b.classList.add('active');
         persistWorkspace();
       });
+    });
+    L.DomUtil.create('div', 'lyr-ctrl-divider', box);
+    var hb = L.DomUtil.create('button', 'lyr-ctrl-overlay', box);
+    hb.textContent = '🏠 Номери будинків';
+    hb.title = 'Наблизьте карту (зум ' + HouseNumbers.minZoom + '+) — номери підвантажуються з OpenStreetMap (Overpass API)';
+    hb.addEventListener('click', function(){
+      hb.classList.toggle('active', HouseNumbers.toggle());
     });
     L.DomEvent.disableClickPropagation(box);
     return box;
@@ -1249,7 +1358,7 @@ function applyLoadedState(){
   state.bs.forEach(renderBS);
   state.addresses.forEach(renderAddr);
   Object.values(TILE_LAYERS).forEach(function(l){ map.removeLayer(l); });
-  (TILE_LAYERS[state.tileLayer] || TILE_LAYERS.voyager).addTo(map);
+  (TILE_LAYERS[state.tileLayer] || TILE_LAYERS.streets).addTo(map);
   document.querySelectorAll('.lyr-ctrl button').forEach(function(b){ b.classList.toggle('active', TILE_LABELS[state.tileLayer] === b.textContent); });
   map.setView(state.view.center, state.view.zoom);
   persistWorkspace(); updateProjectHeader(); renderBSList(); renderAddrList(); renderSaveList();
@@ -1260,6 +1369,9 @@ document.getElementById('btnSaveAs').addEventListener('click', saveAs);
 document.getElementById('btnNew').addEventListener('click', function(){
   if (!state.bs.length && !state.addresses.length) return startNew();
   Modal.confirm('Почати новий проєкт? Поточні незбережені зміни на карті буде втрачено (збережені проєкти залишаться).', 'Новий проєкт', startNew);
+});
+document.getElementById('btnHome').addEventListener('click', function(){
+  map.setView(HOME_VIEW.center, HOME_VIEW.zoom);
 });
 function startNew(){
   clearAllLayers();
@@ -1301,10 +1413,11 @@ document.getElementById('btnExportCsv').addEventListener('click', function(){
      on-screen position (getBoundingClientRect), so no re-fetching needed
    - sectors/markers: recomputed straight from state.bs / state.addresses
      using the same geometry the map uses, then drawn with the Canvas 2D API
-   This only needs CORS-enabled tiles (Esri layers). The OSM/Wikimedia layer
-   does not send CORS headers, so it's skipped for export (see check below);
-   it still works fine for on-screen browsing. */
-var EXPORT_UNSUPPORTED_LAYERS = { osm: 'OSM (Wikimedia)' };
+   This only needs CORS-enabled tiles. All basemaps here are Esri layers
+   (crossOrigin: true, and Esri's tile servers do send CORS headers), so this
+   should always succeed; EXPORT_UNSUPPORTED_LAYERS is kept as a safety net
+   in case a future basemap without CORS support gets added. */
+var EXPORT_UNSUPPORTED_LAYERS = {};
 var TILE_ATTR_TEXT = {
   streets: 'Tiles © Esri — Esri, HERE, Garmin, FAO, NOAA, USGS',
   gray: 'Tiles © Esri — Esri, HERE, Garmin, FAO, NOAA, USGS',
