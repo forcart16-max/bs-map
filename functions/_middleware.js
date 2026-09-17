@@ -1,3 +1,14 @@
+/**
+ * Cloudflare Pages Functions middleware.
+ * Scope: "/*"
+ *
+ * Credentials read from Pages secrets:
+ *   AUTH_USER   – login користувача
+ *   AUTH_PASS   – password користувача
+ *   AUTH_ADMIN  – login адміністратора
+ *   AUTH_ADPASS – password адміністратора
+ */
+
 export async function onRequest(context) {
   const { request, env } = context;
 
@@ -6,10 +17,10 @@ export async function onRequest(context) {
   const adminUser = env.AUTH_ADMIN;
   const adminPass = env.AUTH_ADPASS;
 
-  // Блокуємо сайт, якщо змінні оточення взагалі не налаштовані
+  // Захист від відсутності конфігурації
   if ((!user || !pass) && (!adminUser || !adminPass)) {
     return new Response(
-      'Сайт не налаштовано: відсутні змінні середовища для авторизації.',
+      'Сайт не налаштовано: відсутні змінні середовища для авторизації (AUTH_USER / AUTH_ADMIN).',
       { status: 500 }
     );
   }
@@ -22,7 +33,7 @@ export async function onRequest(context) {
     const isAdminValid = adminUser && adminPass && (await isValid(encoded, adminUser, adminPass));
 
     if (isUserValid || isAdminValid) {
-      // Можна передавати роль далі в запит (наприклад, для API або бекенду)
+      // Прокидаємо заголовок з роллю далі
       const newHeaders = new Headers(request.headers);
       newHeaders.set('X-Auth-Role', isAdminValid ? 'admin' : 'user');
 
@@ -66,9 +77,9 @@ async function timingSafeEqual(a, b) {
   ]);
   const bytesA = new Uint8Array(digestA);
   const bytesB = new Uint8Array(digestB);
-  
+
   if (bytesA.length !== bytesB.length) return false;
-  
+
   let diff = 0;
   for (let i = 0; i < bytesA.length; i++) diff |= bytesA[i] ^ bytesB[i];
   return diff === 0;
