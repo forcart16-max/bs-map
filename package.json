@@ -1,0 +1,11 @@
+{
+  "name": "bsmap",
+  "private": true,
+  "scripts": {
+    "dev": "wrangler pages dev public",
+    "deploy": "wrangler pages deploy public --project-name=bsmap"
+  },
+  "devDependencies": {
+    "wrangler": "^3.90.0"
+  }
+}
