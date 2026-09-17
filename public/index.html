@@ -1,0 +1,1398 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>BSMAP — азимутальні сектори БС</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+/* ============================= Leaflet core (v1.9.4, inlined) ============================= */
+.leaflet-pane,.leaflet-tile,.leaflet-marker-icon,.leaflet-marker-shadow,.leaflet-tile-container,.leaflet-pane>svg,.leaflet-pane>canvas,.leaflet-zoom-box,.leaflet-image-layer,.leaflet-layer{position:absolute;left:0;top:0}.leaflet-container{overflow:hidden}.leaflet-tile,.leaflet-marker-icon,.leaflet-marker-shadow{-webkit-user-select:none;-moz-user-select:none;user-select:none;-webkit-user-drag:none}.leaflet-tile::selection{background:transparent}.leaflet-safari .leaflet-tile{image-rendering:-webkit-optimize-contrast}.leaflet-safari .leaflet-tile-container{width:1600px;height:1600px;-webkit-transform-origin:0 0}.leaflet-marker-icon,.leaflet-marker-shadow{display:block}.leaflet-container .leaflet-overlay-pane svg,.leaflet-container .leaflet-marker-pane img,.leaflet-container .leaflet-shadow-pane img,.leaflet-container .leaflet-tile-pane img,.leaflet-container img.leaflet-image-layer,.leaflet-container .leaflet-tile{max-width:none!important;max-height:none!important}.leaflet-container.leaflet-touch-zoom{-ms-touch-action:pan-x pan-y;touch-action:pan-x pan-y}.leaflet-container.leaflet-touch-drag{-ms-touch-action:pinch-zoom;touch-action:none;touch-action:pinch-zoom}.leaflet-container.leaflet-touch-drag.leaflet-touch-zoom{-ms-touch-action:none;touch-action:none}.leaflet-container{-webkit-tap-highlight-color:transparent}.leaflet-container a{-webkit-tap-highlight-color:rgba(51,181,229,.4)}.leaflet-tile{filter:inherit;visibility:hidden}.leaflet-tile-loaded{visibility:inherit}.leaflet-zoom-box{width:0;height:0;-moz-box-sizing:border-box;box-sizing:border-box;z-index:800}.leaflet-overlay-pane svg{-moz-user-select:none}.leaflet-pane{z-index:400}.leaflet-tile-pane{z-index:200}.leaflet-overlay-pane{z-index:400}.leaflet-shadow-pane{z-index:500}.leaflet-marker-pane{z-index:600}.leaflet-tooltip-pane{z-index:650}.leaflet-popup-pane{z-index:700}.leaflet-map-pane canvas{z-index:100}.leaflet-map-pane svg{z-index:200}.leaflet-vml-shape{width:1px;height:1px}.lvml{behavior:url(#default#VML);display:inline-block;position:absolute}.leaflet-control{position:relative;z-index:800;pointer-events:visiblePainted;pointer-events:auto}.leaflet-top,.leaflet-bottom{position:absolute;z-index:1000;pointer-events:none}.leaflet-top{top:0}.leaflet-right{right:0}.leaflet-bottom{bottom:0}.leaflet-left{left:0}.leaflet-control{float:left;clear:both}.leaflet-right .leaflet-control{float:right}.leaflet-top .leaflet-control{margin-top:10px}.leaflet-bottom .leaflet-control{margin-bottom:10px}.leaflet-left .leaflet-control{margin-left:10px}.leaflet-right .leaflet-control{margin-right:10px}.leaflet-fade-anim .leaflet-popup{opacity:0;-webkit-transition:opacity .2s linear;-moz-transition:opacity .2s linear;transition:opacity .2s linear}.leaflet-fade-anim .leaflet-map-pane .leaflet-popup{opacity:1}.leaflet-zoom-animated{-webkit-transform-origin:0 0;-ms-transform-origin:0 0;transform-origin:0 0}svg.leaflet-zoom-animated{will-change:transform}.leaflet-zoom-anim .leaflet-zoom-animated{-webkit-transition:-webkit-transform .25s cubic-bezier(0,0,.25,1);-moz-transition:-moz-transform .25s cubic-bezier(0,0,.25,1);transition:transform .25s cubic-bezier(0,0,.25,1)}.leaflet-zoom-anim .leaflet-tile,.leaflet-pan-anim .leaflet-tile{-webkit-transition:none;-moz-transition:none;transition:none}.leaflet-zoom-anim .leaflet-zoom-hide{visibility:hidden}.leaflet-interactive{cursor:pointer}.leaflet-grab{cursor:-webkit-grab;cursor:-moz-grab;cursor:grab}.leaflet-crosshair,.leaflet-crosshair .leaflet-interactive{cursor:crosshair}.leaflet-popup-pane,.leaflet-control{cursor:auto}.leaflet-dragging .leaflet-grab,.leaflet-dragging .leaflet-grab .leaflet-interactive,.leaflet-dragging .leaflet-marker-draggable{cursor:move;cursor:-webkit-grabbing;cursor:-moz-grabbing;cursor:grabbing}.leaflet-marker-icon,.leaflet-marker-shadow,.leaflet-image-layer,.leaflet-pane>svg path,.leaflet-tile-container{pointer-events:none}.leaflet-marker-icon.leaflet-interactive,.leaflet-image-layer.leaflet-interactive,.leaflet-pane>svg path.leaflet-interactive,svg.leaflet-image-layer.leaflet-interactive path{pointer-events:visiblePainted;pointer-events:auto}.leaflet-container{background:#ddd;outline-offset:1px}.leaflet-container a{color:#0078A8}.leaflet-zoom-box{border:2px dotted #38f;background:rgba(255,255,255,.5)}.leaflet-container-touch{-ms-touch-action:none;touch-action:none}.leaflet-bar{box-shadow:0 1px 5px rgba(0,0,0,.65);border-radius:4px}.leaflet-bar a,.leaflet-bar a:hover{background-color:#fff;border-bottom:1px solid #ccc;width:26px;height:26px;line-height:26px;display:block;text-align:center;text-decoration:none;color:#000}.leaflet-bar a{background-position:50% 50%;background-repeat:no-repeat;display:block}.leaflet-bar a:hover{background-color:#f4f4f4}.leaflet-bar a:first-child{border-top-left-radius:4px;border-top-right-radius:4px}.leaflet-bar a:last-child{border-bottom-left-radius:4px;border-bottom-right-radius:4px;border-bottom:none}.leaflet-bar a.leaflet-disabled{cursor:default;background-color:#f4f4f4;color:#bbb}.leaflet-touch .leaflet-bar a{width:30px;height:30px;line-height:30px}.leaflet-touch .leaflet-bar a:first-child{border-top-left-radius:2px;border-top-right-radius:2px}.leaflet-touch .leaflet-bar a:last-child{border-bottom-left-radius:2px;border-bottom-right-radius:2px}.leaflet-control-zoom-in,.leaflet-control-zoom-out{font:bold 18px 'Lucida Console',Monaco,monospace;text-indent:1px}.leaflet-touch .leaflet-control-zoom-in,.leaflet-touch .leaflet-control-zoom-out{font-size:22px}.leaflet-control-layers{box-shadow:0 1px 5px rgba(0,0,0,.4);background:#fff;border-radius:5px}.leaflet-control-layers-toggle{background-size:26px 26px;width:36px;height:36px}.leaflet-touch .leaflet-control-layers-toggle{width:44px;height:44px}.leaflet-control-layers .leaflet-control-layers-list,.leaflet-control-layers-expanded .leaflet-control-layers-toggle{display:none}.leaflet-control-layers-expanded .leaflet-control-layers-list{display:block;position:relative}.leaflet-control-layers-expanded{padding:6px 10px 6px 6px;color:#333;background:#fff}.leaflet-control-layers-scrollbar{overflow-y:scroll;overflow-x:hidden;padding-right:5px}.leaflet-control-layers-selector{margin-top:2px;position:relative;top:1px}.leaflet-control-layers label{display:block;font-size:13px;font-size:1.08333em}.leaflet-control-layers-separator{height:0;border-top:1px solid #ddd;margin:5px -10px 5px -6px}.leaflet-default-icon-path{background-image:url(images/marker-icon.png)}.leaflet-attribution-flag{display:inline!important;vertical-align:baseline!important;width:1em;height:.6669em}.leaflet-control-attribution svg{position:relative;top:.1em}.leaflet-control-attribution a svg{color:rgba(0,0,0,0)}.leaflet-control-attribution{background:#fff;background:rgba(255,255,255,.8);margin:0}.leaflet-control-attribution a{text-decoration:none}.leaflet-control-attribution a:hover,.leaflet-control-attribution a:focus{text-decoration:underline}.leaflet-attribution-flag{display:none!important}.leaflet-left .leaflet-control-scale{margin-left:5px}.leaflet-bottom .leaflet-control-scale{margin-bottom:5px}.leaflet-control-scale-line{border:2px solid #777;border-top:none;line-height:1.1;padding:2px 5px 1px;font-size:11px;white-space:nowrap;overflow:hidden;-moz-box-sizing:border-box;box-sizing:border-box;background:#fff;background:rgba(255,255,255,.8)}.leaflet-control-scale-line:not(:first-child){border-top:2px solid #777;border-bottom:none;margin-top:-2px}.leaflet-control-scale-line:not(:first-child):not(:last-child){border-bottom:2px solid #777}.leaflet-touch .leaflet-control-attribution,.leaflet-touch .leaflet-control-layers,.leaflet-touch .leaflet-bar{box-shadow:none}.leaflet-touch .leaflet-control-layers,.leaflet-touch .leaflet-bar{border:2px solid rgba(0,0,0,.2);background-clip:padding-box}.leaflet-popup{position:absolute;text-align:center;margin-bottom:20px}.leaflet-popup-content-wrapper{padding:1px;text-align:left;border-radius:12px}.leaflet-popup-content{margin:13px 24px 13px 20px;line-height:1.3;font-size:13px;font-size:1.08333em;min-height:1px}.leaflet-popup-content p{margin:17px 0}.leaflet-popup-tip-container{width:40px;height:20px;position:absolute;left:50%;margin-top:-1px;margin-left:-20px;overflow:hidden;pointer-events:none}.leaflet-popup-tip{width:17px;height:17px;padding:1px;margin:-10px auto 0;pointer-events:auto;-webkit-transform:rotate(45deg);-moz-transform:rotate(45deg);ms-transform:rotate(45deg);-o-transform:rotate(45deg);transform:rotate(45deg)}.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:#fff;color:#333;box-shadow:0 3px 14px rgba(0,0,0,.4)}.leaflet-container a.leaflet-popup-close-button{position:absolute;top:0;right:0;border:none;text-align:center;width:24px;height:24px;font:16px/24px Tahoma,Verdana,sans-serif;color:#757575;text-decoration:none;background:transparent;text-align:center}.leaflet-container a.leaflet-popup-close-button:hover,.leaflet-container a.leaflet-popup-close-button:focus{color:#585858}.leaflet-popup-scrolled{overflow:auto}.leaflet-oldie .leaflet-popup-content-wrapper{zoom:1}.leaflet-oldie .leaflet-popup-tip{width:24px;margin:0 auto;-ms-filter:"progid:DXImageTransform.Microsoft.Matrix(M11=0.70710678, M12=0.70710678, M21=-0.70710678, M22=0.70710678)";filter:progid:DXImageTransform.Microsoft.Matrix(M11=0.70710678, M12=0.70710678, M21=-0.70710678, M22=0.70710678)}.leaflet-oldie .leaflet-control-zoom,.leaflet-oldie .leaflet-control-layers,.leaflet-oldie .leaflet-popup-content-wrapper,.leaflet-oldie .leaflet-popup-tip{border:1px solid #999}.leaflet-div-icon{background:#fff;border:1px solid #666}.leaflet-tooltip{position:absolute;padding:6px;background-color:#fff;border:1px solid #fff;border-radius:3px;color:#222;white-space:nowrap;-webkit-user-select:none;-moz-user-select:none;user-select:none;pointer-events:none;box-shadow:0 1px 3px rgba(0,0,0,.4)}.leaflet-tooltip.leaflet-clickable{cursor:pointer;pointer-events:auto}.leaflet-tooltip-top:before,.leaflet-tooltip-bottom:before,.leaflet-tooltip-left:before,.leaflet-tooltip-right:before{position:absolute;pointer-events:none;border:6px solid transparent;background:transparent;content:""}.leaflet-tooltip-bottom{margin-top:6px}.leaflet-tooltip-top{margin-top:-6px}.leaflet-tooltip-bottom:before,.leaflet-tooltip-top:before{left:50%;margin-left:-6px}.leaflet-tooltip-top:before{bottom:0;margin-bottom:-12px;border-top-color:#fff}.leaflet-tooltip-bottom:before{top:0;margin-top:-12px;margin-left:-6px;border-bottom-color:#fff}.leaflet-tooltip-left{margin-left:-6px}.leaflet-tooltip-right{margin-left:6px}.leaflet-tooltip-left:before,.leaflet-tooltip-right:before{top:50%;margin-top:-6px}.leaflet-tooltip-left:before{right:0;margin-right:-12px;border-left-color:#fff}.leaflet-tooltip-right:before{left:0;margin-left:-12px;border-right-color:#fff}
+
+/* ============================= App design tokens ============================= */
+:root{
+  --bg-0:#0a0e13; --bg-1:#11161d; --bg-2:#1a212b; --bg-3:#212a35;
+  --border:#232c38; --border-soft:#1a222c;
+  --text-0:#e7edf3; --text-1:#8fa0ae; --text-2:#5c6b78;
+  --accent:#ff8a3d; --accent-ink:#3a1e08; --accent-2:#54d6c9;
+  --danger:#f2555f; --success:#3ddb96; --warn:#f2c94c;
+  --font-ui:'IBM Plex Sans',system-ui,-apple-system,sans-serif;
+  --font-mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  --r:7px;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    --bg-0:#f2f4f6; --bg-1:#ffffff; --bg-2:#eef1f4; --bg-3:#e4e9ed;
+    --border:#d7dde3; --border-soft:#e4e9ed;
+    --text-0:#151b21; --text-1:#57626c; --text-2:#8b96a0;
+    --accent:#d9691f; --accent-ink:#fff3ea; --accent-2:#0f8f83;
+    --danger:#c72c37; --success:#0f8f56; --warn:#9c7a0a;
+    color-scheme: light;
+  }
+}
+:root[data-theme="light"]{
+  --bg-0:#f2f4f6; --bg-1:#ffffff; --bg-2:#eef1f4; --bg-3:#e4e9ed;
+  --border:#d7dde3; --border-soft:#e4e9ed;
+  --text-0:#151b21; --text-1:#57626c; --text-2:#8b96a0;
+  --accent:#d9691f; --accent-ink:#fff3ea; --accent-2:#0f8f83;
+  --danger:#c72c37; --success:#0f8f56; --warn:#9c7a0a;
+  color-scheme: light;
+}
+:root[data-theme="dark"]{
+  --bg-0:#0a0e13; --bg-1:#11161d; --bg-2:#1a212b; --bg-3:#212a35;
+  --border:#232c38; --border-soft:#1a222c;
+  --text-0:#e7edf3; --text-1:#8fa0ae; --text-2:#5c6b78;
+  --accent:#ff8a3d; --accent-ink:#3a1e08; --accent-2:#54d6c9;
+  --danger:#f2555f; --success:#3ddb96; --warn:#f2c94c;
+  color-scheme: dark;
+}
+
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{
+  background:var(--bg-0); color:var(--text-0);
+  font:400 13px/1.45 var(--font-ui);
+  display:flex; overflow:hidden;
+}
+button, input, select, textarea{ font-family:inherit; color:inherit; }
+::selection{ background:var(--accent); color:var(--accent-ink); }
+
+#map{ flex:1 1 auto; min-width:0; height:100%; background:var(--bg-1); }
+#map .leaflet-control-attribution{
+  background:rgba(10,14,19,.72); color:var(--text-1); font-size:10.5px; border-radius:4px 0 0 0;
+}
+:root[data-theme="light"] #map .leaflet-control-attribution{ background:rgba(255,255,255,.8); }
+@media (prefers-color-scheme: light){ :root:not([data-theme="dark"]) #map .leaflet-control-attribution{ background:rgba(255,255,255,.8); } }
+#map .leaflet-control-attribution a{ color:var(--accent-2); }
+
+#sidebar{
+  width:388px; flex:0 0 auto; height:100%;
+  background:var(--bg-1); border-left:1px solid var(--border);
+  display:flex; flex-direction:column; overflow:hidden;
+}
+
+/* ---------- header ---------- */
+.hd{ padding:16px 16px 12px; border-bottom:1px solid var(--border-soft); flex:0 0 auto; }
+.hd-brand{ display:flex; align-items:baseline; gap:9px; }
+.hd-brand .mark{ font-size:19px; line-height:1; }
+.hd-brand h1{ margin:0; font-size:16.5px; font-weight:700; letter-spacing:.2px; }
+.hd-brand .ver{ font-family:var(--font-mono); font-size:10.5px; color:var(--text-2); }
+.hd-sub{ margin:3px 0 0; color:var(--text-1); font-size:11.5px; }
+.hd-project{
+  margin-top:11px; display:flex; align-items:center; gap:7px;
+  background:var(--bg-2); border:1px solid var(--border); border-radius:var(--r);
+  padding:7px 9px;
+}
+.hd-project .name{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:12.5px; font-weight:500; }
+.hd-project .name.unsaved::after{ content:" •"; color:var(--accent); }
+.icon-btn{
+  appearance:none; border:1px solid var(--border); background:var(--bg-3); color:var(--text-1);
+  border-radius:5px; width:26px; height:26px; display:inline-flex; align-items:center; justify-content:center;
+  cursor:pointer; font-size:13px; flex:0 0 auto; transition:border-color .12s, color .12s;
+}
+.icon-btn:hover{ border-color:var(--accent); color:var(--text-0); }
+.icon-btn.danger:hover{ border-color:var(--danger); color:var(--danger); }
+
+/* ---------- scroll body ---------- */
+.bd{ flex:1 1 auto; overflow-y:auto; overflow-x:hidden; }
+.sec{ border-bottom:1px solid var(--border-soft); padding:14px 16px; }
+.sec-hd{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; gap:8px; }
+.sec-title{ font-size:11.5px; font-weight:600; color:var(--text-1); letter-spacing:.3px; }
+.sec-count{ font-family:var(--font-mono); font-size:11px; color:var(--text-2); background:var(--bg-2); border-radius:20px; padding:1px 8px; }
+
+/* ---------- form controls ---------- */
+label.field{ display:block; margin-bottom:9px; }
+label.field:last-child{ margin-bottom:0; }
+.field-row{ display:flex; gap:8px; }
+.field-row>label.field{ flex:1; min-width:0; }
+.field .lbl{ display:block; font-size:11px; color:var(--text-1); margin-bottom:4px; }
+input[type=text], input[type=number], input[type=search], textarea, select.sel{
+  width:100%; background:var(--bg-2); border:1px solid var(--border); border-radius:5px;
+  padding:7px 8px; font-size:12.5px; color:var(--text-0); outline:none;
+}
+textarea{ font-family:var(--font-mono); font-size:12px; resize:vertical; line-height:1.5; }
+input[type=text]:focus, input[type=number]:focus, input[type=search]:focus, textarea:focus, select.sel:focus{
+  border-color:var(--accent);
+}
+input[type=number]{ font-family:var(--font-mono); }
+input[type=color]{ -webkit-appearance:none; appearance:none; width:34px; height:30px; border:1px solid var(--border); border-radius:5px; background:none; padding:2px; cursor:pointer; }
+input[type=color]::-webkit-color-swatch{ border-radius:3px; border:none; }
+input[type=color]::-moz-color-swatch{ border-radius:3px; border:none; }
+
+.btn{
+  appearance:none; border:1px solid var(--border); background:var(--bg-2); color:var(--text-0);
+  border-radius:6px; padding:8px 12px; font-size:12.5px; font-weight:500; cursor:pointer;
+  display:inline-flex; align-items:center; justify-content:center; gap:6px; transition:filter .12s, border-color .12s;
+}
+.btn:hover{ border-color:var(--text-1); }
+.btn:active{ filter:brightness(.92); }
+.btn.block{ width:100%; }
+.btn.primary{ background:var(--accent); border-color:var(--accent); color:var(--accent-ink); font-weight:600; }
+.btn.primary:hover{ filter:brightness(1.06); }
+.btn.ghost{ background:transparent; }
+.btn.small{ padding:5px 9px; font-size:11.5px; }
+.btn.toggle.active{ background:var(--accent); border-color:var(--accent); color:var(--accent-ink); }
+.btn-row{ display:flex; gap:8px; }
+.btn-row .btn{ flex:1; }
+
+/* ---------- azimuth dial ---------- */
+.dial-wrap{ display:flex; gap:14px; align-items:center; }
+.dial{ position:relative; width:92px; height:92px; flex:0 0 auto; touch-action:none; cursor:pointer; }
+.dial svg{ width:100%; height:100%; display:block; }
+.dial-val{
+  position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+  font-family:var(--font-mono); font-size:14px; font-weight:600; pointer-events:none; color:var(--text-0);
+}
+.dial-fields{ flex:1; min-width:0; }
+
+/* ---------- swatches ---------- */
+.swatches{ display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
+.swatch{
+  width:22px; height:22px; border-radius:50%; border:2px solid transparent; cursor:pointer; padding:0;
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.25);
+}
+.swatch.active{ border-color:var(--text-0); }
+
+/* ---------- list rows ---------- */
+.list{ display:flex; flex-direction:column; gap:5px; max-height:280px; overflow-y:auto; margin-top:2px; }
+.row{
+  display:flex; align-items:center; gap:8px; background:var(--bg-2); border:1px solid var(--border);
+  border-radius:6px; padding:6px 7px; cursor:pointer; transition:border-color .12s, background .12s;
+}
+.row:hover, .row.hover{ border-color:var(--accent); background:var(--bg-3); }
+.row .dot{ width:11px; height:11px; border-radius:50%; flex:0 0 auto; box-shadow:inset 0 0 0 1px rgba(0,0,0,.3); }
+.row .info{ flex:1; min-width:0; }
+.row .info .l1{ font-size:12px; font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.row .info .l2{ font-family:var(--font-mono); font-size:10.5px; color:var(--text-1); }
+.row .stepper{ display:flex; align-items:center; gap:2px; }
+.row .stepper button{
+  width:18px; height:18px; border:1px solid var(--border); background:var(--bg-1); color:var(--text-1);
+  border-radius:3px; cursor:pointer; font-size:11px; line-height:1; display:flex; align-items:center; justify-content:center;
+}
+.row .stepper button:hover{ border-color:var(--accent); color:var(--text-0); }
+.row .del{
+  width:20px; height:20px; border-radius:50%; border:1px solid var(--border); background:var(--bg-1);
+  color:var(--text-1); cursor:pointer; flex:0 0 auto; font-size:12px; line-height:1;
+}
+.row .del:hover{ border-color:var(--danger); color:var(--danger); background:color-mix(in srgb, var(--danger) 12%, var(--bg-1)); }
+.empty-hint{ color:var(--text-2); font-size:11.5px; padding:10px 2px; text-align:center; border:1px dashed var(--border); border-radius:6px; }
+
+/* ---------- address search ---------- */
+.search-wrap{ position:relative; }
+.search-results{
+  position:absolute; left:0; right:0; top:calc(100% + 4px); z-index:5;
+  background:var(--bg-2); border:1px solid var(--border); border-radius:6px; overflow:hidden;
+  box-shadow:0 8px 24px rgba(0,0,0,.35); max-height:220px; overflow-y:auto;
+}
+.search-results .sr-item{ padding:8px 10px; font-size:12px; cursor:pointer; border-bottom:1px solid var(--border-soft); }
+.search-results .sr-item:last-child{ border-bottom:none; }
+.search-results .sr-item:hover{ background:var(--bg-3); }
+.search-results .sr-empty{ padding:10px; color:var(--text-2); font-size:11.5px; }
+
+/* ---------- saves list ---------- */
+.save-row{ display:flex; align-items:center; gap:8px; padding:7px 8px; border-radius:6px; border:1px solid var(--border); background:var(--bg-2); }
+.save-row.current{ border-color:var(--accent-2); }
+.save-row .info{ flex:1; min-width:0; cursor:pointer; }
+.save-row .info .l1{ font-size:12px; font-weight:500; overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
+.save-row .info .l2{ font-family:var(--font-mono); font-size:10px; color:var(--text-2); }
+
+/* ---------- footer ---------- */
+.ft{ flex:0 0 auto; padding:12px 16px 14px; border-top:1px solid var(--border-soft); display:flex; flex-direction:column; gap:8px; }
+.ft-row{ display:flex; gap:8px; }
+.ft-row .btn{ flex:1; }
+
+/* ---------- toasts ---------- */
+#toasts{ position:fixed; right:16px; bottom:16px; z-index:4000; display:flex; flex-direction:column; gap:8px; align-items:flex-end; pointer-events:none; }
+.toast{
+  pointer-events:auto; font-size:12.5px; padding:10px 13px; border-radius:7px; max-width:320px;
+  background:var(--bg-3); border:1px solid var(--border); color:var(--text-0); box-shadow:0 6px 20px rgba(0,0,0,.35);
+  display:flex; align-items:center; gap:9px; animation:toast-in .18s ease-out;
+}
+.toast.success{ border-color:var(--success); }
+.toast.error{ border-color:var(--danger); }
+.toast .tdot{ width:7px; height:7px; border-radius:50%; background:var(--text-1); flex:0 0 auto; }
+.toast.success .tdot{ background:var(--success); }
+.toast.error .tdot{ background:var(--danger); }
+.toast button.undo{ background:none;border:none;color:var(--accent-2);font-weight:600;cursor:pointer;font-size:12px;padding:0; }
+@keyframes toast-in{ from{ opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;} }
+
+/* ---------- modal ---------- */
+.modal-veil{
+  position:fixed; inset:0; background:rgba(6,9,12,.6); backdrop-filter:blur(1px);
+  display:flex; align-items:center; justify-content:center; z-index:3000; padding:20px;
+}
+.modal{
+  width:100%; max-width:480px; max-height:86vh; overflow-y:auto; background:var(--bg-1);
+  border:1px solid var(--border); border-radius:10px; box-shadow:0 20px 60px rgba(0,0,0,.5);
+  display:flex; flex-direction:column;
+}
+.modal.wide{ max-width:600px; }
+.modal-hd{ padding:16px 18px 12px; border-bottom:1px solid var(--border-soft); display:flex; align-items:center; justify-content:space-between; }
+.modal-hd h2{ margin:0; font-size:14.5px; font-weight:700; }
+.modal-bd{ padding:16px 18px; }
+.modal-ft{ padding:12px 18px 16px; display:flex; gap:8px; justify-content:flex-end; border-top:1px solid var(--border-soft); }
+.modal-note{ font-size:11.5px; color:var(--text-1); margin:0 0 10px; line-height:1.5; }
+.modal-note code{ font-family:var(--font-mono); background:var(--bg-2); padding:1px 5px; border-radius:3px; font-size:10.5px; }
+.tabs{ display:flex; gap:4px; margin-bottom:12px; background:var(--bg-2); border:1px solid var(--border); border-radius:7px; padding:3px; }
+.tabs button{ flex:1; border:none; background:none; color:var(--text-1); padding:7px 8px; border-radius:5px; font-size:12px; font-weight:500; cursor:pointer; }
+.tabs button.active{ background:var(--accent); color:var(--accent-ink); }
+.tabpage{ display:none; }
+.tabpage.active{ display:block; }
+.parse-report{ margin-top:9px; font-size:11.5px; font-family:var(--font-mono); }
+.parse-report .ok{ color:var(--success); }
+.parse-report .bad{ color:var(--danger); }
+.parse-errs{ margin:6px 0 0; padding-left:16px; color:var(--text-1); max-height:100px; overflow-y:auto; }
+
+/* ---------- custom leaflet controls ---------- */
+.lyr-ctrl{
+  background:var(--bg-1); border:1px solid var(--border); border-radius:8px; overflow:hidden;
+  box-shadow:0 4px 16px rgba(0,0,0,.3); font-size:11.5px;
+}
+.lyr-ctrl button{
+  display:block; width:100%; text-align:left; background:none; border:none; color:var(--text-1);
+  padding:7px 11px; cursor:pointer; border-bottom:1px solid var(--border-soft); font-size:11.5px;
+}
+.lyr-ctrl button:last-child{ border-bottom:none; }
+.lyr-ctrl button:hover{ background:var(--bg-2); color:var(--text-0); }
+.lyr-ctrl button.active{ color:var(--accent); font-weight:600; }
+.coord-ctrl{
+  background:rgba(10,14,19,.78); color:var(--text-1); font-family:var(--font-mono); font-size:11px;
+  padding:5px 9px; border-radius:6px; border:1px solid var(--border);
+}
+:root[data-theme="light"] .coord-ctrl{ background:rgba(255,255,255,.82); }
+@media (prefers-color-scheme: light){ :root:not([data-theme="dark"]) .coord-ctrl{ background:rgba(255,255,255,.82); } }
+.crosshair-badge{
+  position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:900;
+  background:var(--accent); color:var(--accent-ink); font-size:11.5px; font-weight:600;
+  padding:6px 13px; border-radius:20px; box-shadow:0 4px 14px rgba(0,0,0,.35); display:none; align-items:center; gap:7px;
+}
+.crosshair-badge.show{ display:inline-flex; }
+.crosshair-badge b{ font-family:var(--font-mono); }
+
+/* custom divIcon markers */
+.bs-center-icon{ width:10px;height:10px;border-radius:50%;box-shadow:0 0 0 2px rgba(0,0,0,.55), 0 0 0 4px rgba(255,255,255,.35); }
+.addr-icon{ display:flex; align-items:center; justify-content:center; filter:drop-shadow(0 2px 3px rgba(0,0,0,.5)); }
+
+@media (max-width: 860px){
+  #sidebar{ width:100%; position:absolute; right:0; top:0; }
+  #map{ width:100%; }
+}
+::-webkit-scrollbar{ width:9px; height:9px; }
+::-webkit-scrollbar-thumb{ background:var(--bg-3); border-radius:5px; border:2px solid var(--bg-1); }
+::-webkit-scrollbar-track{ background:transparent; }
+</style>
+</head>
+<body>
+
+<div id="map"></div>
+
+<aside id="sidebar">
+  <div class="hd">
+    <div class="hd-brand">
+      <span class="mark">📡</span>
+      <h1>BSMAP</h1>
+      <span class="ver">v2</span>
+    </div>
+    <p class="hd-sub">Азимутальні сектори базових станцій на безкоштовних картах</p>
+    <div class="hd-project">
+      <span class="name" id="projectName">Без збереження</span>
+      <button class="icon-btn" id="btnSave" title="Зберегти">💾</button>
+      <button class="icon-btn" id="btnSaveAs" title="Зберегти як…">📑</button>
+      <button class="icon-btn" id="btnNew" title="Новий проєкт">🗋</button>
+      <button class="icon-btn" id="btnTheme" title="Перемкнути тему">◐</button>
+    </div>
+  </div>
+
+  <div class="bd">
+
+    <!-- BUILD BS SECTION -->
+    <div class="sec">
+      <div class="sec-hd">
+        <span class="sec-title">ДОДАВАННЯ СЕКТОРА</span>
+      </div>
+
+      <div class="dial-wrap">
+        <div class="dial" id="dial" title="Перетягніть, щоб задати азимут">
+          <svg viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="46" fill="var(--bg-2)" stroke="var(--border)" stroke-width="1.5"/>
+            <line x1="50" y1="8" x2="50" y2="14" stroke="var(--text-2)" stroke-width="1.5"/>
+            <line x1="50" y1="92" x2="50" y2="86" stroke="var(--text-2)" stroke-width="1.5"/>
+            <line x1="8" y1="50" x2="14" y2="50" stroke="var(--text-2)" stroke-width="1.5"/>
+            <line x1="92" y1="50" x2="86" y2="50" stroke="var(--text-2)" stroke-width="1.5"/>
+            <path id="dialSector" d="" fill="var(--accent)" fill-opacity="0.35" stroke="var(--accent)" stroke-width="1.5"/>
+            <line id="dialNeedle" x1="50" y1="50" x2="50" y2="14" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+            <circle cx="50" cy="50" r="3" fill="var(--accent)"/>
+          </svg>
+          <div class="dial-val" id="dialVal">0°</div>
+        </div>
+        <div class="dial-fields">
+          <label class="field">
+            <span class="lbl">Азимут, °</span>
+            <input type="number" id="inAzimuth" min="0" max="359" value="0">
+          </label>
+          <div class="field-row">
+            <label class="field">
+              <span class="lbl">Ширина сектора, °</span>
+              <input type="number" id="inBeam" min="5" max="360" value="120">
+            </label>
+            <label class="field">
+              <span class="lbl">Радіус, м</span>
+              <input type="number" id="inRadius" min="10" max="20000" step="10" value="500">
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <label class="field" style="margin-top:10px">
+        <span class="lbl">Підпис (LAC/CID, назва — необов'язково)</span>
+        <input type="text" id="inLabel" placeholder="напр. LAC 1234 / CID 5678">
+      </label>
+
+      <label class="field">
+        <span class="lbl">Колір сектора</span>
+        <div class="swatches" id="swatches"></div>
+      </label>
+
+      <div class="btn-row" style="margin-top:12px">
+        <button class="btn toggle" id="btnPlaceMode" style="flex:1.4">🎯 Додати кліком по карті</button>
+      </div>
+      <button class="btn block" id="btnMassAdd" style="margin-top:8px">▤ Масове додавання точок / азимутів</button>
+    </div>
+
+    <!-- BS LIST -->
+    <div class="sec">
+      <div class="sec-hd">
+        <span class="sec-title">СЕКТОРИ БС</span>
+        <span class="sec-count" id="bsCount">0</span>
+      </div>
+      <div class="list" id="bsList"></div>
+      <div class="empty-hint" id="bsEmpty">Ще немає жодного сектора. Клікніть «Додати кліком по карті» або скористайтесь масовим додаванням.</div>
+    </div>
+
+    <!-- ADDRESS SECTION -->
+    <div class="sec">
+      <div class="sec-hd">
+        <span class="sec-title">АДРЕСИ</span>
+        <span class="sec-count" id="addrCount">0</span>
+      </div>
+      <div class="search-wrap">
+        <input type="text" id="inAddrSearch" placeholder="Пошук адреси (OpenStreetMap)…">
+        <div class="search-results" id="addrResults" style="display:none"></div>
+      </div>
+      <div class="list" id="addrList" style="margin-top:9px"></div>
+      <div class="empty-hint" id="addrEmpty">Немає доданих адрес.</div>
+    </div>
+
+    <!-- SAVES SECTION -->
+    <div class="sec">
+      <div class="sec-hd">
+        <span class="sec-title">ЗБЕРЕЖЕНІ ПРОЄКТИ</span>
+        <span class="sec-count" id="saveCount">0</span>
+      </div>
+      <div class="list" id="saveList"></div>
+      <div class="empty-hint" id="saveEmpty">Немає збережених проєктів у цьому браузері.</div>
+    </div>
+
+  </div>
+
+  <div class="ft">
+    <div class="ft-row">
+      <button class="btn" id="btnExportJson">⭳ Експорт JSON</button>
+      <button class="btn" id="btnImportJson">⭱ Імпорт JSON</button>
+    </div>
+    <div class="ft-row">
+      <button class="btn" id="btnExportCsv">⭳ CSV секторів</button>
+    </div>
+    <div class="ft-row">
+      <button class="btn" id="btnExportPng">🖼 PNG карти</button>
+      <button class="btn" id="btnExportPdf">📄 PDF карти</button>
+    </div>
+    <input type="file" id="fileImport" accept="application/json" style="display:none">
+  </div>
+</aside>
+
+<div id="toasts"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<script>
+"use strict";
+
+/* ============================================================
+   THEME
+   ============================================================ */
+(function(){
+  var saved = null;
+  try { saved = localStorage.getItem('bsmap.theme'); } catch(e){}
+  if (saved) document.documentElement.setAttribute('data-theme', saved);
+  document.getElementById('btnTheme').addEventListener('click', function(){
+    var cur = document.documentElement.getAttribute('data-theme');
+    var mql = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+    var next;
+    if (!cur) next = mql ? 'dark' : 'light';
+    else next = cur === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    try { localStorage.setItem('bsmap.theme', next); } catch(e){}
+  });
+})();
+
+/* ============================================================
+   TOASTS
+   ============================================================ */
+var Toast = (function(){
+  var host = document.getElementById('toasts');
+  function show(text, type, action){
+    var el = document.createElement('div');
+    el.className = 'toast' + (type ? ' ' + type : '');
+    var dot = document.createElement('span'); dot.className = 'tdot';
+    var span = document.createElement('span'); span.textContent = text; span.style.flex = '1';
+    el.appendChild(dot); el.appendChild(span);
+    if (action) {
+      var btn = document.createElement('button');
+      btn.className = 'undo'; btn.textContent = action.label;
+      btn.addEventListener('click', function(){ action.fn(); el.remove(); });
+      el.appendChild(btn);
+    }
+    host.appendChild(el);
+    var ttl = action ? 6000 : 3200;
+    setTimeout(function(){ el.style.transition='opacity .25s'; el.style.opacity='0'; setTimeout(function(){ el.remove(); }, 260); }, ttl);
+  }
+  return { show: show };
+})();
+
+/* ============================================================
+   MODAL (generic)
+   ============================================================ */
+var Modal = (function(){
+  function open(opts){
+    var veil = document.createElement('div');
+    veil.className = 'modal-veil';
+    var modal = document.createElement('div');
+    modal.className = 'modal' + (opts.wide ? ' wide' : '');
+    var hd = document.createElement('div'); hd.className = 'modal-hd';
+    hd.innerHTML = '<h2></h2>';
+    hd.querySelector('h2').textContent = opts.title || '';
+    var closeBtn = document.createElement('button');
+    closeBtn.className = 'icon-btn'; closeBtn.textContent = '✕';
+    hd.appendChild(closeBtn);
+    var bd = document.createElement('div'); bd.className = 'modal-bd';
+    if (typeof opts.body === 'string') bd.innerHTML = opts.body; else bd.appendChild(opts.body);
+    var ft = document.createElement('div'); ft.className = 'modal-ft';
+    modal.appendChild(hd); modal.appendChild(bd); modal.appendChild(ft);
+    veil.appendChild(modal);
+    document.body.appendChild(veil);
+
+    function close(){ veil.remove(); document.removeEventListener('keydown', onKey); }
+    function onKey(e){ if (e.key === 'Escape') close(); }
+    document.addEventListener('keydown', onKey);
+    closeBtn.addEventListener('click', close);
+    veil.addEventListener('mousedown', function(e){ if (e.target === veil) close(); });
+
+    var api = { el: modal, bd: bd, ft: ft, close: close };
+    (opts.buttons || []).forEach(function(b){
+      var btn = document.createElement('button');
+      btn.className = 'btn' + (b.primary ? ' primary' : '');
+      btn.textContent = b.label;
+      btn.addEventListener('click', function(){ b.onClick(api); });
+      ft.appendChild(btn);
+    });
+    if (opts.onOpen) opts.onOpen(api);
+    return api;
+  }
+  function confirm(text, okLabel, onOk){
+    open({
+      title: 'Підтвердження',
+      body: '<p class="modal-note" style="font-size:13px;color:var(--text-0)">' + text + '</p>',
+      buttons: [
+        { label: 'Скасувати', onClick: function(m){ m.close(); } },
+        { label: okLabel || 'Так', primary: true, onClick: function(m){ m.close(); onOk(); } }
+      ]
+    });
+  }
+  function prompt(title, placeholder, defVal, onOk){
+    var wrap = document.createElement('div');
+    wrap.innerHTML = '<label class="field"><span class="lbl">Назва</span><input type="text" id="promptInput"></label>';
+    open({
+      title: title,
+      body: wrap,
+      onOpen: function(m){
+        var inp = m.bd.querySelector('#promptInput');
+        inp.placeholder = placeholder || '';
+        inp.value = defVal || '';
+        setTimeout(function(){ inp.focus(); inp.select(); }, 30);
+        inp.addEventListener('keydown', function(e){ if (e.key === 'Enter') { go(); } });
+        function go(){
+          var v = inp.value.trim();
+          if (!v) { inp.style.borderColor = 'var(--danger)'; inp.focus(); return; }
+          m.close(); onOk(v);
+        }
+        m._go = go;
+      },
+      buttons: [
+        { label: 'Скасувати', onClick: function(m){ m.close(); } },
+        { label: 'OK', primary: true, onClick: function(m){ m._go(); } }
+      ]
+    });
+  }
+  return { open: open, confirm: confirm, prompt: prompt };
+})();
+
+/* ============================================================
+   GEO MATH — sector polygons on a great-circle
+   ============================================================ */
+var EARTH_R = 6378137;
+function toRad(d){ return d * Math.PI / 180; }
+function toDeg(r){ return r * 180 / Math.PI; }
+function norm360(d){ return ((d % 360) + 360) % 360; }
+
+function destPoint(lat, lng, bearingDeg, distM){
+  var d = distM / EARTH_R;
+  var brng = toRad(norm360(bearingDeg));
+  var phi1 = toRad(lat), lam1 = toRad(lng);
+  var phi2 = Math.asin(Math.sin(phi1) * Math.cos(d) + Math.cos(phi1) * Math.sin(d) * Math.cos(brng));
+  var lam2 = lam1 + Math.atan2(
+    Math.sin(brng) * Math.sin(d) * Math.cos(phi1),
+    Math.cos(d) - Math.sin(phi1) * Math.sin(phi2)
+  );
+  return [toDeg(phi2), toDeg(lam2)];
+}
+
+function sectorLatLngs(lat, lng, azimuth, beam, radius){
+  beam = Math.max(1, Math.min(360, beam));
+  var half = beam / 2;
+  var start = azimuth - half, end = azimuth + half;
+  var steps = Math.max(8, Math.round(beam / 3));
+  var pts = [[lat, lng]];
+  for (var i = 0; i <= steps; i++){
+    var b = start + (end - start) * (i / steps);
+    pts.push(destPoint(lat, lng, b, radius));
+  }
+  return pts;
+}
+
+/* ============================================================
+   STORAGE
+   ============================================================ */
+var LS_WORKSPACE = 'bsmap.workspace';
+var LS_PROJECTS  = 'bsmap.projects';
+var LS_CURRENT   = 'bsmap.currentProjectName';
+
+function lsGet(key, fallback){
+  try { var v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }
+  catch(e){ return fallback; }
+}
+function lsSet(key, val){
+  try { localStorage.setItem(key, JSON.stringify(val)); return true; }
+  catch(e){ return false; }
+}
+
+/* ============================================================
+   APP STATE
+   ============================================================ */
+var uid = (function(){ var n = 0; return function(){ n += 1; return 'id' + Date.now().toString(36) + n; }; })();
+
+var PALETTE = ['#ff8a3d','#54d6c9','#f2555f','#f2c94c','#7c9cff','#c084fc','#3ddb96','#f472b6'];
+
+var state = {
+  bs: [],        // {id, lat, lng, azimuth, beam, radius, color, label}
+  addresses: [],  // {id, lat, lng, title}
+  view: { center: [50.4501, 30.5234], zoom: 11 },
+  tileLayer: 'voyager'
+};
+var currentProjectName = null;
+var dirty = false;
+
+function loadWorkspace(){
+  var w = lsGet(LS_WORKSPACE, null);
+  if (w) {
+    state.bs = Array.isArray(w.bs) ? w.bs : [];
+    state.addresses = Array.isArray(w.addresses) ? w.addresses : [];
+    state.view = w.view || state.view;
+    state.tileLayer = w.tileLayer || state.tileLayer;
+  }
+  currentProjectName = lsGet(LS_CURRENT, null);
+}
+function persistWorkspace(){
+  lsSet(LS_WORKSPACE, { bs: state.bs, addresses: state.addresses, view: state.view, tileLayer: state.tileLayer });
+  lsSet(LS_CURRENT, currentProjectName);
+}
+function getProjects(){ return lsGet(LS_PROJECTS, {}); }
+function setProjects(p){ lsSet(LS_PROJECTS, p); }
+
+loadWorkspace();
+
+/* ============================================================
+   MAP SETUP — free tile sources, no API keys
+   ============================================================ */
+var map = L.map('map', {
+  center: state.view.center,
+  zoom: state.view.zoom,
+  zoomControl: false,
+  attributionControl: true
+});
+
+/* Free, no-API-key raster basemaps only. CARTO's basemaps.cartocdn.com now requires
+   an account API key, and tile.openstreetmap.org actively blocks third-party apps
+   that don't meet its volunteer-run usage policy — so neither is used here.
+   Esri's public ArcGIS Online "World" basemaps and Wikimedia's OSM-styled tiles
+   are free, keyless, and explicitly serve third-party apps. */
+var ESRI_ATTR = 'Tiles &copy; <a href="https://www.esri.com">Esri</a> &mdash; Esri, HERE, Garmin, FAO, NOAA, USGS';
+function esriLayer(service, opts){
+  return L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/' + service + '/MapServer/tile/{z}/{y}/{x}',
+    Object.assign({ maxZoom: 19, attribution: ESRI_ATTR, crossOrigin: true }, opts || {}));
+}
+var TILE_LAYERS = {
+  streets: esriLayer('World_Street_Map'),
+  gray: L.layerGroup([
+    esriLayer('Canvas/World_Light_Gray_Base', { maxNativeZoom: 16, maxZoom: 20 }),
+    esriLayer('Canvas/World_Light_Gray_Reference', { maxNativeZoom: 16, maxZoom: 20 })
+  ]),
+  dark: L.layerGroup([
+    esriLayer('Canvas/World_Dark_Gray_Base', { maxNativeZoom: 16, maxZoom: 20 }),
+    esriLayer('Canvas/World_Dark_Gray_Reference', { maxNativeZoom: 16, maxZoom: 20 })
+  ]),
+  topo: esriLayer('World_Topo_Map'),
+  imagery: esriLayer('World_Imagery', { maxZoom: 19 }),
+  osm: L.tileLayer('https://maps.wikimedia.org/osm-intl/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    crossOrigin: true,
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, style by Wikimedia'
+  })
+};
+var TILE_LABELS = { streets: 'Вулиці (Esri)', gray: 'Світла (Esri Gray)', dark: 'Темна (Esri Dark)', topo: 'Рельєф (Esri Topo)', imagery: 'Супутник (Esri)', osm: 'OSM (Wikimedia)' };
+
+if (!TILE_LAYERS[state.tileLayer]) state.tileLayer = 'streets';
+(TILE_LAYERS[state.tileLayer] || TILE_LAYERS.streets).addTo(map);
+L.control.zoom({ position: 'bottomleft' }).addTo(map);
+
+/* custom layer switcher, no external icon assets */
+var LayerSwitcher = L.Control.extend({
+  options: { position: 'topright' },
+  onAdd: function(){
+    var box = L.DomUtil.create('div', 'lyr-ctrl');
+    Object.keys(TILE_LABELS).forEach(function(key){
+      var b = L.DomUtil.create('button', key === state.tileLayer ? 'active' : '', box);
+      b.textContent = TILE_LABELS[key];
+      b.addEventListener('click', function(){
+        Object.values(TILE_LAYERS).forEach(function(l){ map.removeLayer(l); });
+        TILE_LAYERS[key].addTo(map);
+        state.tileLayer = key;
+        Array.from(box.children).forEach(function(c){ c.classList.remove('active'); });
+        b.classList.add('active');
+        persistWorkspace();
+      });
+    });
+    L.DomEvent.disableClickPropagation(box);
+    return box;
+  }
+});
+map.addControl(new LayerSwitcher());
+
+/* coordinate readout */
+var CoordCtrl = L.Control.extend({
+  options: { position: 'bottomright' },
+  onAdd: function(){
+    var box = L.DomUtil.create('div', 'coord-ctrl');
+    box.textContent = '—';
+    map.on('mousemove', function(e){
+      box.textContent = e.latlng.lat.toFixed(5) + ', ' + e.latlng.lng.toFixed(5);
+    });
+    return box;
+  }
+});
+map.addControl(new CoordCtrl());
+
+var crosshairBadge = document.createElement('div');
+crosshairBadge.className = 'crosshair-badge';
+crosshairBadge.innerHTML = 'Режим додавання · азимут <b id="badgeAz">0°</b> · клік по карті додає сектор';
+document.body.appendChild(crosshairBadge);
+
+map.on('moveend zoomend', function(){
+  state.view = { center: [map.getCenter().lat, map.getCenter().lng], zoom: map.getZoom() };
+  persistWorkspace();
+});
+
+/* ============================================================
+   AZIMUTH DIAL
+   ============================================================ */
+var dial = document.getElementById('dial');
+var dialVal = document.getElementById('dialVal');
+var dialNeedle = document.getElementById('dialNeedle');
+var dialSector = document.getElementById('dialSector');
+var inAzimuth = document.getElementById('inAzimuth');
+var inBeam = document.getElementById('inBeam');
+
+function polarPt(cx, cy, r, angleDeg){
+  var a = toRad(angleDeg - 90);
+  return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+}
+function updateDial(){
+  var az = norm360(parseFloat(inAzimuth.value) || 0);
+  var beam = Math.max(1, Math.min(360, parseFloat(inBeam.value) || 120));
+  var tip = polarPt(50, 50, 42, az);
+  dialNeedle.setAttribute('x2', tip[0].toFixed(2));
+  dialNeedle.setAttribute('y2', tip[1].toFixed(2));
+  var half = beam / 2;
+  if (beam >= 359.5) {
+    dialSector.setAttribute('d', 'M 50 8 A 42 42 0 1 1 49.99 8 Z');
+  } else {
+    var p1 = polarPt(50,50,42, az - half);
+    var p2 = polarPt(50,50,42, az + half);
+    var large = beam > 180 ? 1 : 0;
+    dialSector.setAttribute('d', 'M 50 50 L ' + p1[0].toFixed(2) + ' ' + p1[1].toFixed(2) + ' A 42 42 0 ' + large + ' 1 ' + p2[0].toFixed(2) + ' ' + p2[1].toFixed(2) + ' Z');
+  }
+  dialVal.textContent = Math.round(az) + '°';
+  document.getElementById('badgeAz').textContent = Math.round(az) + '°';
+}
+function setAzimuthFromEvent(clientX, clientY){
+  var rect = dial.getBoundingClientRect();
+  var cx = rect.left + rect.width/2, cy = rect.top + rect.height/2;
+  var ang = Math.atan2(clientX - cx, -(clientY - cy));
+  var deg = norm360(toDeg(ang));
+  inAzimuth.value = Math.round(deg);
+  updateDial();
+}
+var dialDragging = false;
+dial.addEventListener('pointerdown', function(e){ dialDragging = true; dial.setPointerCapture(e.pointerId); setAzimuthFromEvent(e.clientX, e.clientY); });
+dial.addEventListener('pointermove', function(e){ if (dialDragging) setAzimuthFromEvent(e.clientX, e.clientY); });
+dial.addEventListener('pointerup', function(e){ dialDragging = false; });
+inAzimuth.addEventListener('input', updateDial);
+inBeam.addEventListener('input', updateDial);
+updateDial();
+
+/* ============================================================
+   SWATCHES
+   ============================================================ */
+var currentColor = PALETTE[0];
+(function buildSwatches(){
+  var box = document.getElementById('swatches');
+  PALETTE.forEach(function(c){
+    var b = document.createElement('button');
+    b.className = 'swatch' + (c === currentColor ? ' active' : '');
+    b.style.background = c;
+    b.addEventListener('click', function(){
+      currentColor = c;
+      Array.from(box.querySelectorAll('.swatch')).forEach(function(s){ s.classList.remove('active'); });
+      b.classList.add('active');
+      customColorInput.value = c;
+    });
+    box.appendChild(b);
+  });
+  var customColorInput = document.createElement('input');
+  customColorInput.type = 'color';
+  customColorInput.value = currentColor;
+  customColorInput.addEventListener('input', function(){
+    currentColor = customColorInput.value;
+    Array.from(box.querySelectorAll('.swatch')).forEach(function(s){ s.classList.remove('active'); });
+  });
+  box.appendChild(customColorInput);
+})();
+
+/* ============================================================
+   BS SECTORS — rendering + CRUD
+   ============================================================ */
+var bsLayers = {}; // id -> {marker, polygon}
+
+function bsIcon(color){
+  return L.divIcon({
+    className: '', html: '<div class="bs-center-icon" style="background:' + color + '"></div>',
+    iconSize: [10,10], iconAnchor: [5,5]
+  });
+}
+
+function renderBS(item){
+  removeBSLayer(item.id);
+  var marker = L.marker([item.lat, item.lng], {
+    icon: bsIcon(item.color), draggable: true, keyboard: false, title: item.label || ('Сектор ' + Math.round(item.azimuth) + '°')
+  }).addTo(map);
+  marker.bindTooltip(tooltipHtml(item), { direction: 'top', offset: [0,-6] });
+
+  var polygon = L.polygon(sectorLatLngs(item.lat, item.lng, item.azimuth, item.beam, item.radius), {
+    color: item.color, weight: 1.3, opacity: 0.85, fillColor: item.color, fillOpacity: 0.28
+  }).addTo(map);
+
+  function highlightOn(){ document.querySelectorAll('.row[data-id="'+item.id+'"]').forEach(function(r){ r.classList.add('hover'); }); }
+  function highlightOff(){ document.querySelectorAll('.row[data-id="'+item.id+'"]').forEach(function(r){ r.classList.remove('hover'); }); }
+  marker.on('mouseover', highlightOn); marker.on('mouseout', highlightOff);
+  polygon.on('mouseover', highlightOn); polygon.on('mouseout', highlightOff);
+
+  marker.on('dragend', function(){
+    var ll = marker.getLatLng();
+    item.lat = ll.lat; item.lng = ll.lng;
+    renderBS(item);
+    persist(); renderBSList();
+  });
+  marker.on('click', function(){ map.flyTo([item.lat, item.lng], Math.max(map.getZoom(), 14)); });
+
+  bsLayers[item.id] = { marker: marker, polygon: polygon };
+}
+function removeBSLayer(id){
+  var l = bsLayers[id];
+  if (l) { map.removeLayer(l.marker); map.removeLayer(l.polygon); delete bsLayers[id]; }
+}
+function tooltipHtml(item){
+  var lab = item.label ? (escapeHtml(item.label) + '<br>') : '';
+  return lab + 'Азимут: ' + Math.round(item.azimuth) + '°, сектор ' + Math.round(item.beam) + '°<br>Радіус: ' + Math.round(item.radius) + ' м';
+}
+function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function addBS(opts){
+  var item = {
+    id: uid(),
+    lat: opts.lat, lng: opts.lng,
+    azimuth: norm360(opts.azimuth),
+    beam: Math.max(1, Math.min(360, opts.beam || 120)),
+    radius: Math.max(10, opts.radius || 500),
+    color: opts.color || currentColor,
+    label: (opts.label || '').trim()
+  };
+  state.bs.push(item);
+  renderBS(item);
+  persist(); renderBSList();
+  return item;
+}
+function deleteBS(id){
+  var idx = state.bs.findIndex(function(b){ return b.id === id; });
+  if (idx === -1) return;
+  var removed = state.bs[idx];
+  state.bs.splice(idx, 1);
+  removeBSLayer(id);
+  persist(); renderBSList();
+  Toast.show('Сектор видалено.', null, { label: 'Скасувати', fn: function(){
+    state.bs.splice(idx, 0, removed);
+    renderBS(removed);
+    persist(); renderBSList();
+  }});
+}
+function adjustRadius(id, delta){
+  var item = state.bs.find(function(b){ return b.id === id; });
+  if (!item) return;
+  item.radius = Math.max(20, Math.min(20000, item.radius + delta));
+  renderBS(item);
+  persist(); renderBSList();
+}
+
+function renderBSList(){
+  var host = document.getElementById('bsList');
+  var empty = document.getElementById('bsEmpty');
+  document.getElementById('bsCount').textContent = state.bs.length;
+  host.innerHTML = '';
+  empty.style.display = state.bs.length ? 'none' : 'block';
+  state.bs.forEach(function(item, i){
+    var row = document.createElement('div');
+    row.className = 'row'; row.dataset.id = item.id;
+    row.innerHTML =
+      '<span class="dot" style="background:' + item.color + '"></span>' +
+      '<span class="info"><span class="l1">' + (i+1) + '. ' + (item.label ? escapeHtml(item.label) : (item.lat.toFixed(4) + ', ' + item.lng.toFixed(4))) + '</span>' +
+      '<span class="l2">аз ' + Math.round(item.azimuth) + '° · ' + Math.round(item.beam) + '° · ' + Math.round(item.radius) + ' м</span></span>' +
+      '<span class="stepper"><button data-act="dec" title="Зменшити радіус">−</button><button data-act="inc" title="Збільшити радіус">+</button></span>' +
+      '<button class="del" title="Видалити">✕</button>';
+    row.addEventListener('click', function(e){
+      if (e.target.closest('button')) return;
+      map.flyTo([item.lat, item.lng], Math.max(map.getZoom(), 14));
+    });
+    row.addEventListener('mouseenter', function(){ if (bsLayers[item.id]) bsLayers[item.id].polygon.setStyle({ fillOpacity: 0.5 }); });
+    row.addEventListener('mouseleave', function(){ if (bsLayers[item.id]) bsLayers[item.id].polygon.setStyle({ fillOpacity: 0.28 }); });
+    row.querySelector('[data-act="dec"]').addEventListener('click', function(e){ e.stopPropagation(); adjustRadius(item.id, -50); });
+    row.querySelector('[data-act="inc"]').addEventListener('click', function(e){ e.stopPropagation(); adjustRadius(item.id, 50); });
+    row.querySelector('.del').addEventListener('click', function(e){ e.stopPropagation(); deleteBS(item.id); });
+    host.appendChild(row);
+  });
+}
+
+/* ============================================================
+   ADDRESSES — free Nominatim (OpenStreetMap) search
+   ============================================================ */
+function addrIcon(){
+  return L.divIcon({
+    className: '', iconSize: [22,30], iconAnchor: [11,28],
+    html: '<svg class="addr-icon" width="22" height="30" viewBox="0 0 22 30"><path d="M11 0C4.9 0 0 4.9 0 11c0 8.3 11 19 11 19s11-10.7 11-19C22 4.9 17.1 0 11 0z" fill="var(--accent-2)"/><circle cx="11" cy="11" r="4.2" fill="var(--bg-1)"/></svg>'
+  });
+}
+var addrLayers = {};
+function renderAddr(item){
+  removeAddrLayer(item.id);
+  var marker = L.marker([item.lat, item.lng], { icon: addrIcon(), title: item.title }).addTo(map);
+  marker.bindTooltip(escapeHtml(item.title), { direction: 'top', offset: [0,-24] });
+  function on(){ document.querySelectorAll('.row[data-aid="'+item.id+'"]').forEach(function(r){ r.classList.add('hover'); }); }
+  function off(){ document.querySelectorAll('.row[data-aid="'+item.id+'"]').forEach(function(r){ r.classList.remove('hover'); }); }
+  marker.on('mouseover', on); marker.on('mouseout', off);
+  marker.on('click', function(){ map.flyTo([item.lat, item.lng], Math.max(map.getZoom(), 15)); });
+  addrLayers[item.id] = marker;
+}
+function removeAddrLayer(id){ if (addrLayers[id]) { map.removeLayer(addrLayers[id]); delete addrLayers[id]; } }
+
+function addAddress(opts){
+  var item = { id: uid(), lat: opts.lat, lng: opts.lng, title: (opts.title || '').trim() || (opts.lat.toFixed(5)+', '+opts.lng.toFixed(5)) };
+  state.addresses.push(item);
+  renderAddr(item);
+  persist(); renderAddrList();
+  return item;
+}
+function deleteAddress(id){
+  var idx = state.addresses.findIndex(function(a){ return a.id === id; });
+  if (idx === -1) return;
+  var removed = state.addresses[idx];
+  state.addresses.splice(idx,1);
+  removeAddrLayer(id);
+  persist(); renderAddrList();
+  Toast.show('Адресу видалено.', null, { label: 'Скасувати', fn: function(){
+    state.addresses.splice(idx,0,removed); renderAddr(removed); persist(); renderAddrList();
+  }});
+}
+function renderAddrList(){
+  var host = document.getElementById('addrList');
+  var empty = document.getElementById('addrEmpty');
+  document.getElementById('addrCount').textContent = state.addresses.length;
+  host.innerHTML = '';
+  empty.style.display = state.addresses.length ? 'none' : 'block';
+  state.addresses.forEach(function(item, i){
+    var row = document.createElement('div');
+    row.className = 'row'; row.dataset.aid = item.id;
+    row.innerHTML =
+      '<span class="dot" style="background:var(--accent-2)"></span>' +
+      '<span class="info"><span class="l1">' + (i+1) + '. ' + escapeHtml(item.title) + '</span>' +
+      '<span class="l2">' + item.lat.toFixed(5) + ', ' + item.lng.toFixed(5) + '</span></span>' +
+      '<button class="del" title="Видалити">✕</button>';
+    row.addEventListener('click', function(e){
+      if (e.target.closest('button')) return;
+      map.flyTo([item.lat, item.lng], Math.max(map.getZoom(), 15));
+    });
+    row.querySelector('.del').addEventListener('click', function(e){ e.stopPropagation(); deleteAddress(item.id); });
+    host.appendChild(row);
+  });
+}
+
+var addrSearchInput = document.getElementById('inAddrSearch');
+var addrResultsBox = document.getElementById('addrResults');
+var addrSearchTimer = null;
+addrSearchInput.addEventListener('input', function(){
+  var q = addrSearchInput.value.trim();
+  clearTimeout(addrSearchTimer);
+  if (q.length < 3) { addrResultsBox.style.display = 'none'; return; }
+  addrSearchTimer = setTimeout(function(){ runAddrSearch(q); }, 500);
+});
+document.addEventListener('click', function(e){
+  if (!e.target.closest('.search-wrap')) addrResultsBox.style.display = 'none';
+});
+function runAddrSearch(q){
+  var b = map.getBounds();
+  var viewbox = [b.getWest(), b.getNorth(), b.getEast(), b.getSouth()].join(',');
+  var url = 'https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=0&limit=6&accept-language=uk&viewbox=' + viewbox + '&q=' + encodeURIComponent(q);
+  addrResultsBox.innerHTML = '<div class="sr-empty">Пошук…</div>';
+  addrResultsBox.style.display = 'block';
+  fetch(url, { headers: { 'Accept': 'application/json' } })
+    .then(function(r){ return r.json(); })
+    .then(function(list){
+      addrResultsBox.innerHTML = '';
+      if (!list || !list.length) { addrResultsBox.innerHTML = '<div class="sr-empty">Нічого не знайдено.</div>'; return; }
+      list.forEach(function(place){
+        var row = document.createElement('div');
+        row.className = 'sr-item';
+        row.textContent = place.display_name;
+        row.addEventListener('click', function(){
+          var lat = parseFloat(place.lat), lon = parseFloat(place.lon);
+          map.flyTo([lat, lon], 16);
+          addAddress({ lat: lat, lng: lon, title: place.display_name.split(',').slice(0,3).join(',') });
+          addrSearchInput.value = ''; addrResultsBox.style.display = 'none';
+        });
+        addrResultsBox.appendChild(row);
+      });
+    })
+    .catch(function(){
+      addrResultsBox.innerHTML = '<div class="sr-empty">Помилка пошуку. Спробуйте ще раз.</div>';
+    });
+}
+
+/* ============================================================
+   CLICK-TO-PLACE MODE
+   ============================================================ */
+var placeMode = false;
+var btnPlaceMode = document.getElementById('btnPlaceMode');
+btnPlaceMode.addEventListener('click', function(){
+  placeMode = !placeMode;
+  btnPlaceMode.classList.toggle('active', placeMode);
+  crosshairBadge.classList.toggle('show', placeMode);
+  document.getElementById('map').classList.toggle('leaflet-crosshair', placeMode);
+});
+map.on('click', function(e){
+  if (!placeMode) return;
+  addBS({
+    lat: e.latlng.lat, lng: e.latlng.lng,
+    azimuth: parseFloat(inAzimuth.value) || 0,
+    beam: parseFloat(inBeam.value) || 120,
+    radius: parseFloat(document.getElementById('inRadius').value) || 500,
+    color: currentColor,
+    label: document.getElementById('inLabel').value
+  });
+});
+
+/* ============================================================
+   MASS ADD
+   ============================================================ */
+document.getElementById('btnMassAdd').addEventListener('click', openMassAddModal);
+
+function openMassAddModal(){
+  var body = document.createElement('div');
+  body.innerHTML =
+    '<div class="tabs">' +
+      '<button data-tab="one" class="active">Одна точка, кілька азимутів</button>' +
+      '<button data-tab="many">Список точок</button>' +
+    '</div>' +
+    '<div class="tabpage active" data-page="one">' +
+      '<p class="modal-note">Введіть координати однієї БС/вежі та перелік азимутів — для кожного буде створено окремий сектор. Азимути можна розділяти комою, пробілом чи новим рядком.</p>' +
+      '<div class="field-row">' +
+        '<label class="field"><span class="lbl">Широта</span><input type="text" id="ma1Lat" placeholder="50.4501"></label>' +
+        '<label class="field"><span class="lbl">Довгота</span><input type="text" id="ma1Lng" placeholder="30.5234"></label>' +
+      '</div>' +
+      '<div class="field-row">' +
+        '<label class="field"><span class="lbl">Радіус, м</span><input type="number" id="ma1Radius" value="500"></label>' +
+        '<label class="field"><span class="lbl">Ширина сектора, °</span><input type="number" id="ma1Beam" value="120"></label>' +
+      '</div>' +
+      '<label class="field"><span class="lbl">Підпис (необов\'язково, спільний для всіх)</span><input type="text" id="ma1Label" placeholder="напр. Вежа №4"></label>' +
+      '<label class="field"><span class="lbl">Азимути, °</span><textarea id="ma1Azimuths" rows="4" placeholder="0, 120, 240"></textarea></label>' +
+      '<div class="parse-report" id="ma1Report"></div>' +
+    '</div>' +
+    '<div class="tabpage" data-page="many">' +
+      '<p class="modal-note">По одному запису на рядок: <code>широта, довгота, азимут</code>, необов\'язково ще <code>, радіус, колір, підпис</code>. Розділювач — кома, крапка з комою або таб (можна вставити з таблиці).</p>' +
+      '<textarea id="maListText" rows="8" placeholder="50.4501, 30.5234, 45, 500, #ff8a3d, Вежа №1&#10;50.4550, 30.5300, 130"></textarea>' +
+      '<div class="parse-report" id="maListReport"></div>' +
+    '</div>';
+
+  var modal = Modal.open({
+    title: 'Масове додавання точок',
+    wide: true,
+    body: body,
+    buttons: [
+      { label: 'Скасувати', onClick: function(m){ m.close(); } },
+      { label: 'Додати всі', primary: true, onClick: function(m){ commitMassAdd(m, activeTab); } }
+    ]
+  });
+
+  var activeTab = 'one';
+  var tabs = body.querySelectorAll('.tabs button');
+  tabs.forEach(function(t){
+    t.addEventListener('click', function(){
+      tabs.forEach(function(x){ x.classList.remove('active'); });
+      t.classList.add('active');
+      activeTab = t.dataset.tab;
+      body.querySelectorAll('.tabpage').forEach(function(p){ p.classList.toggle('active', p.dataset.page === activeTab); });
+    });
+  });
+
+  var ma1Azimuths = body.querySelector('#ma1Azimuths');
+  var ma1Report = body.querySelector('#ma1Report');
+  function reportOne(){
+    var parsed = parseOneLocation(body);
+    ma1Report.innerHTML = parsed.errors.length
+      ? '<span class="ok">Валідних: ' + parsed.items.length + '</span> &nbsp; <span class="bad">Помилок: ' + parsed.errors.length + '</span>'
+      : (parsed.items.length ? '<span class="ok">Готово до додавання: ' + parsed.items.length + '</span>' : '');
+  }
+  ['input'].forEach(function(evt){
+    body.querySelector('#ma1Lat').addEventListener(evt, reportOne);
+    body.querySelector('#ma1Lng').addEventListener(evt, reportOne);
+    ma1Azimuths.addEventListener(evt, reportOne);
+  });
+
+  var maListText = body.querySelector('#maListText');
+  var maListReport = body.querySelector('#maListReport');
+  maListText.addEventListener('input', function(){
+    var parsed = parseManyLines(maListText.value);
+    maListReport.innerHTML = '<span class="ok">Валідних: ' + parsed.items.length + '</span>' +
+      (parsed.errors.length ? ' &nbsp; <span class="bad">Помилок: ' + parsed.errors.length + '</span><ul class="parse-errs">' +
+        parsed.errors.slice(0,6).map(function(e){ return '<li>рядок ' + e.line + ': ' + escapeHtml(e.msg) + '</li>'; }).join('') +
+      '</ul>' : '');
+  });
+
+  function commitMassAdd(m, tab){
+    var count = 0;
+    if (tab === 'one') {
+      var parsed = parseOneLocation(body);
+      if (!parsed.items.length) { Toast.show('Немає коректних даних для додавання.', 'error'); return; }
+      parsed.items.forEach(function(it){ addBS(it); count++; });
+    } else {
+      var parsed2 = parseManyLines(maListText.value);
+      if (!parsed2.items.length) { Toast.show('Немає коректних рядків для додавання.', 'error'); return; }
+      parsed2.items.forEach(function(it){ addBS(it); count++; });
+    }
+    m.close();
+    Toast.show('Додано секторів: ' + count + '.', 'success');
+  }
+}
+
+function parseOneLocation(body){
+  var lat = parseFloat(String(body.querySelector('#ma1Lat').value).replace(',', '.'));
+  var lng = parseFloat(String(body.querySelector('#ma1Lng').value).replace(',', '.'));
+  var radius = parseFloat(body.querySelector('#ma1Radius').value) || 500;
+  var beam = parseFloat(body.querySelector('#ma1Beam').value) || 120;
+  var label = body.querySelector('#ma1Label').value.trim();
+  var raw = body.querySelector('#ma1Azimuths').value;
+  var items = [], errors = [];
+  if (isNaN(lat) || lat < -90 || lat > 90) { return { items: [], errors: [{line:0,msg:'широта'}] }; }
+  if (isNaN(lng) || lng < -180 || lng > 180) { return { items: [], errors: [{line:0,msg:'довгота'}] }; }
+  var tokens = raw.split(/[,;\s]+/).map(function(s){ return s.trim(); }).filter(Boolean);
+  tokens.forEach(function(tok){
+    var az = parseFloat(tok);
+    if (isNaN(az) || az < 0 || az > 360) { errors.push({ line: 0, msg: 'азимут «' + tok + '»' }); return; }
+    items.push({ lat: lat, lng: lng, azimuth: az % 360, beam: beam, radius: radius, color: currentColor, label: label });
+  });
+  return { items: items, errors: errors };
+}
+
+function parseManyLines(text){
+  var lines = text.split('\n');
+  var items = [], errors = [];
+  lines.forEach(function(raw, idx){
+    var line = raw.trim();
+    if (!line || line.startsWith('#')) return;
+    var parts = line.split(/\t|;|,/).map(function(s){ return s.trim(); }).filter(function(s,i,arr){ return true; });
+    // remove empties only at trailing end caused by extra separators
+    while (parts.length && parts[parts.length-1] === '') parts.pop();
+    if (parts.length < 3) { errors.push({ line: idx+1, msg: 'потрібно щонайменше широта, довгота, азимут' }); return; }
+    var lat = parseFloat(parts[0].replace(',', '.'));
+    var lng = parseFloat(parts[1].replace(',', '.'));
+    var az = parseFloat(parts[2].replace(',', '.'));
+    var radius = parts[3] !== undefined && parts[3] !== '' ? parseFloat(parts[3]) : 500;
+    var color = parts[4] !== undefined && parts[4] !== '' ? parts[4] : PALETTE[idx % PALETTE.length];
+    var label = parts[5] !== undefined ? parts.slice(5).join(', ') : '';
+    if (isNaN(lat) || lat < -90 || lat > 90) { errors.push({ line: idx+1, msg: 'некоректна широта' }); return; }
+    if (isNaN(lng) || lng < -180 || lng > 180) { errors.push({ line: idx+1, msg: 'некоректна довгота' }); return; }
+    if (isNaN(az) || az < 0 || az > 360) { errors.push({ line: idx+1, msg: 'некоректний азимут' }); return; }
+    if (!/^#?[0-9a-fA-F]{3,8}$/.test(color.replace('#',''))) color = PALETTE[idx % PALETTE.length];
+    if (!color.startsWith('#')) color = '#' + color;
+    items.push({ lat: lat, lng: lng, azimuth: az % 360, beam: parseFloat(document.getElementById('inBeam').value) || 120, radius: isNaN(radius) ? 500 : radius, color: color, label: label });
+  });
+  return { items: items, errors: errors };
+}
+
+/* ============================================================
+   PROJECTS: save / save-as / load / delete
+   ============================================================ */
+function persist(){ dirty = true; persistWorkspace(); updateProjectHeader(); }
+function updateProjectHeader(){
+  var el = document.getElementById('projectName');
+  el.textContent = currentProjectName || 'Без збереження';
+  el.classList.toggle('unsaved', dirty);
+}
+
+function snapshotWorkspace(){
+  return { bs: state.bs, addresses: state.addresses, view: state.view, tileLayer: state.tileLayer, savedAt: Date.now() };
+}
+function saveCurrent(){
+  if (!currentProjectName) { return saveAs(); }
+  var projects = getProjects();
+  projects[currentProjectName] = snapshotWorkspace();
+  setProjects(projects);
+  dirty = false; persistWorkspace(); updateProjectHeader(); renderSaveList();
+  Toast.show('Проєкт «' + currentProjectName + '» збережено.', 'success');
+}
+function saveAs(){
+  Modal.prompt('Зберегти як…', 'Назва проєкту', currentProjectName || '', function(name){
+    var projects = getProjects();
+    projects[name] = snapshotWorkspace();
+    setProjects(projects);
+    currentProjectName = name;
+    dirty = false; persistWorkspace(); updateProjectHeader(); renderSaveList();
+    Toast.show('Проєкт «' + name + '» збережено.', 'success');
+  });
+}
+function loadProject(name){
+  var projects = getProjects();
+  var p = projects[name];
+  if (!p) return;
+  clearAllLayers();
+  state.bs = p.bs || []; state.addresses = p.addresses || [];
+  state.view = p.view || state.view; state.tileLayer = p.tileLayer || state.tileLayer;
+  currentProjectName = name; dirty = false;
+  applyLoadedState();
+  Toast.show('Проєкт «' + name + '» завантажено.', 'success');
+}
+function deleteProject(name){
+  Modal.confirm('Видалити збережений проєкт «' + escapeHtml(name) + '»? Це незворотно.', 'Видалити', function(){
+    var projects = getProjects();
+    delete projects[name];
+    setProjects(projects);
+    if (currentProjectName === name) { currentProjectName = null; persistWorkspace(); updateProjectHeader(); }
+    renderSaveList();
+    Toast.show('Проєкт видалено.', null);
+  });
+}
+function renderSaveList(){
+  var host = document.getElementById('saveList');
+  var empty = document.getElementById('saveEmpty');
+  var projects = getProjects();
+  var names = Object.keys(projects).sort(function(a,b){ return (projects[b].savedAt||0) - (projects[a].savedAt||0); });
+  document.getElementById('saveCount').textContent = names.length;
+  host.innerHTML = '';
+  empty.style.display = names.length ? 'none' : 'block';
+  names.forEach(function(name){
+    var p = projects[name];
+    var row = document.createElement('div');
+    row.className = 'save-row' + (name === currentProjectName ? ' current' : '');
+    var date = p.savedAt ? new Date(p.savedAt).toLocaleString('uk-UA') : '';
+    row.innerHTML =
+      '<span class="info"><span class="l1">' + escapeHtml(name) + '</span><span class="l2">' + (p.bs||[]).length + ' секторів · ' + date + '</span></span>' +
+      '<button class="icon-btn danger" title="Видалити">✕</button>';
+    row.querySelector('.info').addEventListener('click', function(){ loadProject(name); });
+    row.querySelector('button').addEventListener('click', function(e){ e.stopPropagation(); deleteProject(name); });
+    host.appendChild(row);
+  });
+}
+
+function clearAllLayers(){
+  Object.keys(bsLayers).forEach(removeBSLayer);
+  Object.keys(addrLayers).forEach(removeAddrLayer);
+}
+function applyLoadedState(){
+  state.bs.forEach(renderBS);
+  state.addresses.forEach(renderAddr);
+  Object.values(TILE_LAYERS).forEach(function(l){ map.removeLayer(l); });
+  (TILE_LAYERS[state.tileLayer] || TILE_LAYERS.voyager).addTo(map);
+  document.querySelectorAll('.lyr-ctrl button').forEach(function(b){ b.classList.toggle('active', TILE_LABELS[state.tileLayer] === b.textContent); });
+  map.setView(state.view.center, state.view.zoom);
+  persistWorkspace(); updateProjectHeader(); renderBSList(); renderAddrList(); renderSaveList();
+}
+
+document.getElementById('btnSave').addEventListener('click', saveCurrent);
+document.getElementById('btnSaveAs').addEventListener('click', saveAs);
+document.getElementById('btnNew').addEventListener('click', function(){
+  if (!state.bs.length && !state.addresses.length) return startNew();
+  Modal.confirm('Почати новий проєкт? Поточні незбережені зміни на карті буде втрачено (збережені проєкти залишаться).', 'Новий проєкт', startNew);
+});
+function startNew(){
+  clearAllLayers();
+  state.bs = []; state.addresses = [];
+  currentProjectName = null; dirty = false;
+  persistWorkspace(); updateProjectHeader(); renderBSList(); renderAddrList();
+  Toast.show('Створено новий проєкт.', null);
+}
+
+/* ============================================================
+   EXPORT / IMPORT
+   ============================================================ */
+async function getDownloads(){
+  try {
+    if (!window.claude || !window.claude.use) return null;
+    return await window.claude.use('downloads');
+  } catch(e){ return null; }
+}
+document.getElementById('btnExportJson').addEventListener('click', async function(){
+  var dl = await getDownloads();
+  if (!dl) { Toast.show('Завантаження файлів недоступне в цьому перегляді.', 'error'); return; }
+  var payload = JSON.stringify({ name: currentProjectName || 'bsmap-export', bs: state.bs, addresses: state.addresses, view: state.view, exportedAt: new Date().toISOString() }, null, 2);
+  try {
+    await dl.save({ filename: (currentProjectName || 'bsmap') + '.json', data: payload });
+    Toast.show('Файл збережено.', 'success');
+  } catch(e){ if (e && e.code !== 'declined') Toast.show('Не вдалося зберегти файл.', 'error'); }
+});
+document.getElementById('btnExportCsv').addEventListener('click', async function(){
+  var dl = await getDownloads();
+  if (!dl) { Toast.show('Завантаження файлів недоступне в цьому перегляді.', 'error'); return; }
+  var rows = [['lat','lng','azimuth','beam','radius_m','color','label']];
+  state.bs.forEach(function(b){ rows.push([b.lat, b.lng, b.azimuth, b.beam, b.radius, b.color, (b.label||'').replace(/"/g,'""')]); });
+  var csv = rows.map(function(r){ return r.map(function(v){ return typeof v === 'string' && /[,"\n]/.test(v) ? '"'+v+'"' : v; }).join(','); }).join('\n');
+  try {
+    await dl.save({ filename: (currentProjectName || 'bsmap') + '-sectors.csv', data: csv });
+    Toast.show('CSV збережено.', 'success');
+  } catch(e){ if (e && e.code !== 'declined') Toast.show('Не вдалося зберегти файл.', 'error'); }
+});
+/* ---------- export map as PNG / PDF (renders tiles + azimuth sectors) ---------- */
+function triggerDownload(blobOrUrl, filename){
+  var url = (blobOrUrl instanceof Blob) ? URL.createObjectURL(blobOrUrl) : blobOrUrl;
+  var a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  if (blobOrUrl instanceof Blob) setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
+}
+async function renderMapCanvas(){
+  if (typeof html2canvas === 'undefined') {
+    Toast.show('Бібліотека рендеру не завантажилась (перевірте інтернет-з’єднання).', 'error');
+    return null;
+  }
+  var mapEl = document.getElementById('map');
+  var hideEls = mapEl.querySelectorAll('.leaflet-control-zoom, .lyr-ctrl, .crosshair-badge');
+  var prevVis = [];
+  hideEls.forEach(function(el){ prevVis.push(el.style.visibility); el.style.visibility = 'hidden'; });
+  try {
+    var canvas = await html2canvas(mapEl, {
+      useCORS: true,
+      allowTaint: false,
+      backgroundColor: null,
+      scale: Math.min(window.devicePixelRatio || 1, 2),
+      logging: false
+    });
+    return canvas;
+  } catch (e){
+    Toast.show('Не вдалося відрендерити карту (частина тайлів могла заблокувати CORS).', 'error');
+    return null;
+  } finally {
+    hideEls.forEach(function(el, i){ el.style.visibility = prevVis[i]; });
+  }
+}
+document.getElementById('btnExportPng').addEventListener('click', async function(){
+  Toast.show('Рендеримо карту…', null);
+  var canvas = await renderMapCanvas();
+  if (!canvas) return;
+  canvas.toBlob(function(blob){
+    if (!blob) { Toast.show('Не вдалося створити зображення.', 'error'); return; }
+    triggerDownload(blob, (currentProjectName || 'bsmap') + '.png');
+    Toast.show('PNG збережено.', 'success');
+  }, 'image/png');
+});
+document.getElementById('btnExportPdf').addEventListener('click', async function(){
+  if (!window.jspdf || !window.jspdf.jsPDF) {
+    Toast.show('Бібліотека PDF не завантажилась (перевірте інтернет-з’єднання).', 'error');
+    return;
+  }
+  Toast.show('Рендеримо карту…', null);
+  var canvas = await renderMapCanvas();
+  if (!canvas) return;
+  var imgData = canvas.toDataURL('image/jpeg', 0.92);
+  var orientation = canvas.width >= canvas.height ? 'l' : 'p';
+  var jsPDF = window.jspdf.jsPDF;
+  var pdf = new jsPDF({ orientation: orientation, unit: 'pt', format: [canvas.width, canvas.height] });
+  pdf.addImage(imgData, 'JPEG', 0, 0, canvas.width, canvas.height);
+  pdf.save((currentProjectName || 'bsmap') + '.pdf');
+  Toast.show('PDF збережено.', 'success');
+});
+document.getElementById('btnImportJson').addEventListener('click', function(){
+  document.getElementById('fileImport').click();
+});
+document.getElementById('fileImport').addEventListener('change', function(e){
+  var file = e.target.files && e.target.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(){
+    try {
+      var data = JSON.parse(reader.result);
+      Modal.confirm('Імпортувати «' + escapeHtml(file.name) + '»? Поточні незбережені дані на карті буде замінено.', 'Імпортувати', function(){
+        clearAllLayers();
+        state.bs = Array.isArray(data.bs) ? data.bs.map(function(b){ b.id = b.id || uid(); return b; }) : [];
+        state.addresses = Array.isArray(data.addresses) ? data.addresses.map(function(a){ a.id = a.id || uid(); return a; }) : [];
+        if (data.view) state.view = data.view;
+        currentProjectName = null; dirty = true;
+        applyLoadedState();
+        Toast.show('Дані імпортовано (' + state.bs.length + ' секторів).', 'success');
+      });
+    } catch(err){ Toast.show('Не вдалося прочитати JSON-файл.', 'error'); }
+    e.target.value = '';
+  };
+  reader.readAsText(file);
+});
+
+/* ============================================================
+   INITIAL RENDER
+   ============================================================ */
+state.bs.forEach(renderBS);
+state.addresses.forEach(renderAddr);
+renderBSList();
+renderAddrList();
+renderSaveList();
+updateProjectHeader();
+</script>
+</body>
+</html>
