@@ -7,7 +7,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 /* ============================= Leaflet core (v1.9.4, inlined) ============================= */
@@ -659,7 +658,6 @@ var TILE_LAYERS = {
   imagery: esriLayer('World_Imagery', { maxZoom: 19 }),
   osm: L.tileLayer('https://maps.wikimedia.org/osm-intl/{z}/{x}/{y}.png', {
     maxZoom: 19,
-    crossOrigin: true,
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, style by Wikimedia'
   })
 };
@@ -1274,33 +1272,6 @@ function startNew(){
 /* ============================================================
    EXPORT / IMPORT
    ============================================================ */
-async function getDownloads(){
-  try {
-    if (!window.claude || !window.claude.use) return null;
-    return await window.claude.use('downloads');
-  } catch(e){ return null; }
-}
-document.getElementById('btnExportJson').addEventListener('click', async function(){
-  var dl = await getDownloads();
-  if (!dl) { Toast.show('Завантаження файлів недоступне в цьому перегляді.', 'error'); return; }
-  var payload = JSON.stringify({ name: currentProjectName || 'bsmap-export', bs: state.bs, addresses: state.addresses, view: state.view, exportedAt: new Date().toISOString() }, null, 2);
-  try {
-    await dl.save({ filename: (currentProjectName || 'bsmap') + '.json', data: payload });
-    Toast.show('Файл збережено.', 'success');
-  } catch(e){ if (e && e.code !== 'declined') Toast.show('Не вдалося зберегти файл.', 'error'); }
-});
-document.getElementById('btnExportCsv').addEventListener('click', async function(){
-  var dl = await getDownloads();
-  if (!dl) { Toast.show('Завантаження файлів недоступне в цьому перегляді.', 'error'); return; }
-  var rows = [['lat','lng','azimuth','beam','radius_m','color','label']];
-  state.bs.forEach(function(b){ rows.push([b.lat, b.lng, b.azimuth, b.beam, b.radius, b.color, (b.label||'').replace(/"/g,'""')]); });
-  var csv = rows.map(function(r){ return r.map(function(v){ return typeof v === 'string' && /[,"\n]/.test(v) ? '"'+v+'"' : v; }).join(','); }).join('\n');
-  try {
-    await dl.save({ filename: (currentProjectName || 'bsmap') + '-sectors.csv', data: csv });
-    Toast.show('CSV збережено.', 'success');
-  } catch(e){ if (e && e.code !== 'declined') Toast.show('Не вдалося зберегти файл.', 'error'); }
-});
-/* ---------- export map as PNG / PDF (renders tiles + azimuth sectors) ---------- */
 function triggerDownload(blobOrUrl, filename){
   var url = (blobOrUrl instanceof Blob) ? URL.createObjectURL(blobOrUrl) : blobOrUrl;
   var a = document.createElement('a');
@@ -1308,33 +1279,129 @@ function triggerDownload(blobOrUrl, filename){
   document.body.appendChild(a); a.click(); a.remove();
   if (blobOrUrl instanceof Blob) setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
 }
+document.getElementById('btnExportJson').addEventListener('click', function(){
+  var payload = JSON.stringify({ name: currentProjectName || 'bsmap-export', bs: state.bs, addresses: state.addresses, view: state.view, exportedAt: new Date().toISOString() }, null, 2);
+  triggerDownload(new Blob([payload], { type: 'application/json' }), (currentProjectName || 'bsmap') + '.json');
+  Toast.show('Файл збережено.', 'success');
+});
+document.getElementById('btnExportCsv').addEventListener('click', function(){
+  var rows = [['lat','lng','azimuth','beam','radius_m','color','label']];
+  state.bs.forEach(function(b){ rows.push([b.lat, b.lng, b.azimuth, b.beam, b.radius, b.color, (b.label||'').replace(/"/g,'""')]); });
+  var csv = rows.map(function(r){ return r.map(function(v){ return typeof v === 'string' && /[,"\n]/.test(v) ? '"'+v+'"' : v; }).join(','); }).join('\n');
+  triggerDownload(new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' }), (currentProjectName || 'bsmap') + '-sectors.csv');
+  Toast.show('CSV збережено.', 'success');
+});
+
+/* ---------- export map as PNG / PDF ----------
+   We deliberately do NOT use html2canvas here: html2canvas cannot reliably
+   capture Leaflet's SVG overlay pane (the CSS-transformed <svg> that holds
+   the sector polygons), so exports came out with markers but no sectors.
+   Instead we draw everything ourselves onto a plain canvas:
+   - base tiles: copied from the already-loaded <img> tiles via their real
+     on-screen position (getBoundingClientRect), so no re-fetching needed
+   - sectors/markers: recomputed straight from state.bs / state.addresses
+     using the same geometry the map uses, then drawn with the Canvas 2D API
+   This only needs CORS-enabled tiles (Esri layers). The OSM/Wikimedia layer
+   does not send CORS headers, so it's skipped for export (see check below);
+   it still works fine for on-screen browsing. */
+var EXPORT_UNSUPPORTED_LAYERS = { osm: 'OSM (Wikimedia)' };
+var TILE_ATTR_TEXT = {
+  streets: 'Tiles © Esri — Esri, HERE, Garmin, FAO, NOAA, USGS',
+  gray: 'Tiles © Esri — Esri, HERE, Garmin, FAO, NOAA, USGS',
+  dark: 'Tiles © Esri — Esri, HERE, Garmin, FAO, NOAA, USGS',
+  topo: 'Tiles © Esri — Esri, HERE, Garmin, FAO, NOAA, USGS',
+  imagery: 'Tiles © Esri — Esri, HERE, Garmin, FAO, NOAA, USGS'
+};
+function hexToRgba(hex, alpha){
+  hex = String(hex || '#7c9cff').replace('#','');
+  if (hex.length === 3) hex = hex.split('').map(function(c){ return c + c; }).join('');
+  var r = parseInt(hex.substring(0,2),16) || 0, g = parseInt(hex.substring(2,4),16) || 0, b = parseInt(hex.substring(4,6),16) || 0;
+  return 'rgba(' + r + ',' + g + ',' + b + ',' + alpha + ')';
+}
 async function renderMapCanvas(){
-  if (typeof html2canvas === 'undefined') {
-    Toast.show('Бібліотека рендеру не завантажилась (перевірте інтернет-з’єднання).', 'error');
+  if (EXPORT_UNSUPPORTED_LAYERS[state.tileLayer]) {
+    Toast.show('Шар «' + EXPORT_UNSUPPORTED_LAYERS[state.tileLayer] + '» не підтримує експорт зображення (сервер тайлів не дає CORS-дозволу). Оберіть інший шар, напр. «Вулиці (Esri)», і повторіть.', 'error');
     return null;
   }
   var mapEl = document.getElementById('map');
-  var hideEls = mapEl.querySelectorAll('.leaflet-control-zoom, .lyr-ctrl, .crosshair-badge');
-  var prevVis = [];
-  hideEls.forEach(function(el){ prevVis.push(el.style.visibility); el.style.visibility = 'hidden'; });
-  try {
-    var canvas = await html2canvas(mapEl, {
-      useCORS: true,
-      allowTaint: false,
-      backgroundColor: null,
-      scale: Math.min(window.devicePixelRatio || 1, 2),
-      logging: false
-    });
-    return canvas;
-  } catch (e){
-    Toast.show('Не вдалося відрендерити карту (частина тайлів могла заблокувати CORS).', 'error');
-    return null;
-  } finally {
-    hideEls.forEach(function(el, i){ el.style.visibility = prevVis[i]; });
+  var mapRect = mapEl.getBoundingClientRect();
+  var scale = Math.min(window.devicePixelRatio || 1, 2);
+  var canvas = document.createElement('canvas');
+  canvas.width = Math.max(1, Math.round(mapRect.width * scale));
+  canvas.height = Math.max(1, Math.round(mapRect.height * scale));
+  var ctx = canvas.getContext('2d');
+  ctx.scale(scale, scale);
+
+  ctx.fillStyle = getComputedStyle(mapEl).backgroundColor || '#11161d';
+  ctx.fillRect(0, 0, mapRect.width, mapRect.height);
+
+  // 1) base tiles, positioned exactly as the browser currently renders them
+  var tileImgs = mapEl.querySelectorAll('.leaflet-tile-pane img.leaflet-tile-loaded');
+  tileImgs.forEach(function(img){
+    try {
+      var r = img.getBoundingClientRect();
+      ctx.drawImage(img, r.left - mapRect.left, r.top - mapRect.top, r.width, r.height);
+    } catch(e){ /* skip a tile that failed to draw */ }
+  });
+
+  // 2) sector polygons, recomputed from data (avoids the SVG-capture problem)
+  state.bs.forEach(function(item){
+    var latlngs = sectorLatLngs(item.lat, item.lng, item.azimuth, item.beam, item.radius);
+    var pts = latlngs.map(function(ll){ return map.latLngToContainerPoint(L.latLng(ll[0], ll[1])); });
+    if (pts.length < 3) return;
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, pts[0].y);
+    for (var i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+    ctx.closePath();
+    ctx.fillStyle = hexToRgba(item.color, 0.28);
+    ctx.fill();
+    ctx.lineWidth = 1.3;
+    ctx.strokeStyle = hexToRgba(item.color, 0.85);
+    ctx.stroke();
+  });
+
+  // 3) BS center points (matches .bs-center-icon: colored dot, dark+white ring)
+  state.bs.forEach(function(item){
+    var p = map.latLngToContainerPoint(L.latLng(item.lat, item.lng));
+    ctx.beginPath(); ctx.arc(p.x, p.y, 5.5, 0, Math.PI*2);
+    ctx.fillStyle = 'rgba(255,255,255,0.35)'; ctx.fill();
+    ctx.beginPath(); ctx.arc(p.x, p.y, 4.5, 0, Math.PI*2);
+    ctx.fillStyle = 'rgba(0,0,0,0.55)'; ctx.fill();
+    ctx.beginPath(); ctx.arc(p.x, p.y, 3.2, 0, Math.PI*2);
+    ctx.fillStyle = item.color; ctx.fill();
+  });
+
+  // 4) address pins (teal, matches --accent-2)
+  var accent2 = getComputedStyle(document.documentElement).getPropertyValue('--accent-2').trim() || '#54d6c9';
+  state.addresses.forEach(function(a){
+    var p = map.latLngToContainerPoint(L.latLng(a.lat, a.lng));
+    ctx.beginPath(); ctx.arc(p.x, p.y - 4, 6, 0, Math.PI*2);
+    ctx.fillStyle = accent2; ctx.fill();
+    ctx.beginPath(); ctx.arc(p.x, p.y - 4, 2.4, 0, Math.PI*2);
+    ctx.fillStyle = 'rgba(0,0,0,0.55)'; ctx.fill();
+  });
+
+  // 5) attribution (license requirement for Esri tiles)
+  var attrText = TILE_ATTR_TEXT[state.tileLayer];
+  if (attrText) {
+    ctx.font = '11px sans-serif';
+    var padX = 6, boxH = 18;
+    var w = ctx.measureText(attrText).width + padX * 2;
+    ctx.fillStyle = 'rgba(10,14,19,0.72)';
+    ctx.fillRect(mapRect.width - w, mapRect.height - boxH, w, boxH);
+    ctx.fillStyle = '#dfe6ec';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(attrText, mapRect.width - w + padX, mapRect.height - boxH / 2 + 1);
   }
+
+  try { ctx.getImageData(0, 0, 1, 1); }
+  catch (e){
+    Toast.show('Тайли цього шару заблокували експорт (CORS). Оберіть інший шар карти й повторіть.', 'error');
+    return null;
+  }
+  return canvas;
 }
 document.getElementById('btnExportPng').addEventListener('click', async function(){
-  Toast.show('Рендеримо карту…', null);
   var canvas = await renderMapCanvas();
   if (!canvas) return;
   canvas.toBlob(function(blob){
@@ -1348,7 +1415,6 @@ document.getElementById('btnExportPdf').addEventListener('click', async function
     Toast.show('Бібліотека PDF не завантажилась (перевірте інтернет-з’єднання).', 'error');
     return;
   }
-  Toast.show('Рендеримо карту…', null);
   var canvas = await renderMapCanvas();
   if (!canvas) return;
   var imgData = canvas.toDataURL('image/jpeg', 0.92);
