@@ -92,9 +92,15 @@ button, input, select, textarea{ font-family:inherit; color:inherit; }
 .icon-btn{
   appearance:none; border:1px solid var(--border); background:var(--bg-3); color:var(--text-1);
   border-radius:5px; width:26px; height:26px; display:inline-flex; align-items:center; justify-content:center;
-  cursor:pointer; font-size:13px; flex:0 0 auto; transition:border-color .12s, color .12s;
+  cursor:pointer; font-size:13px; flex:0 0 auto; transition:border-color .12s, color .12s, transform .12s, opacity .12s;
 }
 .icon-btn:hover{ border-color:var(--accent); color:var(--text-0); }
+.icon-btn:active{ transform:translateY(1px); }
+.icon-btn:disabled,
+.btn:disabled{ opacity:.45; cursor:not-allowed; filter:saturate(.7); }
+.icon-btn:focus-visible, .btn:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible{
+  outline:2px solid var(--accent); outline-offset:2px;
+}
 .icon-btn.danger:hover{ border-color:var(--danger); color:var(--danger); }
 
 /* ---------- scroll body ---------- */
@@ -266,7 +272,7 @@ input[type=color]::-moz-color-swatch{ border-radius:3px; border:none; }
 .housenum-label{
   background:rgba(10,14,19,.82); color:#fff; border:1px solid rgba(255,255,255,.35);
   border-radius:4px; padding:1px 4px; font:600 10px var(--font-mono); white-space:nowrap;
-  transform:translate(-50%,-50%); pointer-events:none;
+  display:inline-block; transform:translate(-50%,-50%); pointer-events:none; position:relative; z-index:1000;
 }
 :root[data-theme="light"] .housenum-label{ background:rgba(255,255,255,.9); color:#151b21; border-color:rgba(0,0,0,.25); }
 @media (prefers-color-scheme: light){ :root:not([data-theme="dark"]) .housenum-label{ background:rgba(255,255,255,.9); color:#151b21; border-color:rgba(0,0,0,.25); } }
@@ -311,11 +317,11 @@ input[type=color]::-moz-color-swatch{ border-radius:3px; border:none; }
     <p class="hd-sub">Азимутальні сектори базових станцій на безкоштовних картах</p>
     <div class="hd-project">
       <span class="name" id="projectName">Без збереження</span>
-      <button class="icon-btn" id="btnSave" title="Зберегти">💾</button>
-      <button class="icon-btn" id="btnSaveAs" title="Зберегти як…">📑</button>
-      <button class="icon-btn" id="btnNew" title="Новий проєкт">🗋</button>
-      <button class="icon-btn" id="btnHome" title="До Миколаєва">🏠</button>
-      <button class="icon-btn" id="btnTheme" title="Перемкнути тему">◐</button>
+      <button class="icon-btn" id="btnSave" title="Зберегти" aria-label="Зберегти проєкт">💾</button>
+      <button class="icon-btn" id="btnSaveAs" title="Зберегти як…" aria-label="Зберегти як новий проєкт">📑</button>
+      <button class="icon-btn" id="btnNew" title="Новий проєкт" aria-label="Створити новий проєкт">🗋</button>
+      <button class="icon-btn" id="btnHome" title="До Миколаєва" aria-label="Повернутися до Миколаєва">🏠</button>
+      <button class="icon-btn" id="btnTheme" title="Перемкнути тему" aria-label="Перемкнути тему">☀</button>
     </div>
   </div>
 
@@ -437,17 +443,28 @@ input[type=color]::-moz-color-swatch{ border-radius:3px; border:none; }
    THEME
    ============================================================ */
 (function(){
+  function applyTheme(theme){
+    var resolved = theme || (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+    document.documentElement.setAttribute('data-theme', resolved);
+    var btnTheme = document.getElementById('btnTheme');
+    if (btnTheme) {
+      btnTheme.textContent = resolved === 'dark' ? '☀' : '☾';
+      btnTheme.title = resolved === 'dark' ? 'Перемкнути на світлу тему' : 'Перемкнути на темну тему';
+    }
+    try { localStorage.setItem('bsmap.theme', resolved); } catch(e){}
+  }
+
   var saved = null;
   try { saved = localStorage.getItem('bsmap.theme'); } catch(e){}
-  if (saved) document.documentElement.setAttribute('data-theme', saved);
+  applyTheme(saved || null);
+
   document.getElementById('btnTheme').addEventListener('click', function(){
     var cur = document.documentElement.getAttribute('data-theme');
     var mql = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
     var next;
-    if (!cur) next = mql ? 'dark' : 'light';
+    if (!cur) next = mql ? 'light' : 'dark';
     else next = cur === 'dark' ? 'light' : 'dark';
-    document.documentElement.setAttribute('data-theme', next);
-    try { localStorage.setItem('bsmap.theme', next); } catch(e){}
+    applyTheme(next);
   });
 })();
 
@@ -685,68 +702,130 @@ L.control.zoom({ position: 'bottomleft' }).addTo(map);
    of programmatic third-party querying — unlike Wikimedia's tile CDN)
    ============================================================ */
 var HouseNumbers = (function(){
-  // overpass-api.de recently tightened its CORS policy and now rejects
-  // browser requests outright (406, no Access-Control-Allow-Origin) — so we
-  // try a couple of community mirrors that are known to serve browser apps.
-  var OVERPASS_URLS = [
-    'https://overpass.kumi.systems/api/interpreter',
-    'https://overpass.private.coffee/api/interpreter',
-    'https://overpass-api.de/api/interpreter'
-  ];
+  // Кнопка має ходити через локальний proxy /api/overpass, бо прямий запит з
+  // браузера до публічних Overpass mirror-серверів часто повертає 406/429 або
+  // блокується CORS. Це робить роботу стабільною і без API-ключів.
+  var ADDRESS_ENDPOINT = '/api/addresses';
   var ATTR_TEXT = 'номери будинків: © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
   var minZoom = 17;
   var maxResults = 1200;
   var layer = L.layerGroup();
-  var on = false, timer = null, reqSeq = 0;
+  var on = false, timer = null, reqSeq = 0, abortController = null;
+  var requestInFlight = false, refreshQueued = false, lastRequestAt = 0;
+  var requestCooldown = 4000;
 
   function labelIcon(text){
-    return L.divIcon({ className: '', html: '<div class="housenum-label">' + escapeHtml(text) + '</div>', iconSize: [0,0], iconAnchor: [0,0] });
+    return L.divIcon({ className: 'housenum-marker', html: '<span class="housenum-label">' + escapeHtml(text) + '</span>', iconSize: [1,1], iconAnchor: [0,0] });
   }
 
-  function fetchFrom(urls, i, query){
-    if (i >= urls.length) return Promise.reject(new Error('all mirrors failed'));
-    return fetch(urls[i], { method: 'POST', body: 'data=' + encodeURIComponent(query) })
-      .then(function(r){ if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
-      .catch(function(){ return fetchFrom(urls, i + 1, query); });
+  function fetchAddresses(bbox, signal){
+    var url = ADDRESS_ENDPOINT + '?bbox=' + encodeURIComponent(bbox);
+    return fetch(url, { credentials: 'omit', signal: signal }).then(function(r){
+      if (!r.ok) throw new Error('http ' + r.status);
+      return r.text();
+    });
+  }
+
+  function parseAddressXml(text){
+    var xml = new DOMParser().parseFromString(text, 'application/xml');
+    if (xml.querySelector('parsererror')) throw new Error('invalid OSM XML');
+    var nodes = {};
+    Array.from(xml.querySelectorAll('node')).forEach(function(node){
+      nodes[node.getAttribute('id')] = {
+        lat: Number(node.getAttribute('lat')), lon: Number(node.getAttribute('lon')),
+        number: node.querySelector('tag[k="addr:housenumber"]')
+          ? node.querySelector('tag[k="addr:housenumber"]').getAttribute('v') : ''
+      };
+    });
+    var result = Object.keys(nodes).filter(function(id){ return nodes[id].number; }).map(function(id){
+      return { lat: nodes[id].lat, lon: nodes[id].lon, number: nodes[id].number };
+    });
+    Array.from(xml.querySelectorAll('way')).forEach(function(way){
+      var tag = way.querySelector('tag[k="addr:housenumber"]');
+      if (!tag) return;
+      var points = Array.from(way.querySelectorAll('nd')).map(function(ref){ return nodes[ref.getAttribute('ref')]; }).filter(Boolean);
+      if (!points.length) return;
+      result.push({
+        lat: points.reduce(function(sum, point){ return sum + point.lat; }, 0) / points.length,
+        lon: points.reduce(function(sum, point){ return sum + point.lon; }, 0) / points.length,
+        number: tag.getAttribute('v') || ''
+      });
+    });
+    return result;
   }
 
   function refresh(){
     if (!on) return;
-    layer.clearLayers();
+    if (requestInFlight) { refreshQueued = true; return; }
     if (map.getZoom() < minZoom) {
-      Toast.show('Наблизьте карту (зум ' + minZoom + '+), щоб побачити номери будинків.', null);
+      map.setZoom(minZoom, { animate: true });
+      Toast.show('Збільшую карту до зуму ' + minZoom + ' для завантаження номерів будинків.', null);
       return;
     }
     var b = map.getBounds();
-    var bbox = b.getSouth() + ',' + b.getWest() + ',' + b.getNorth() + ',' + b.getEast();
-    var query = '[out:json][timeout:25];(way["building"]["addr:housenumber"](' + bbox + ');node["addr:housenumber"](' + bbox + '););out center;';
+    var south = b.getSouth(), west = b.getWest(), north = b.getNorth(), east = b.getEast();
+    if (north - south > 0.012 || east - west > 0.012 || (north - south) * (east - west) > 0.00008) {
+      Toast.show('Область перегляду завелика. Наблизьте карту ще трохи для номерів будинків.', null);
+      return;
+    }
+    var now = Date.now();
+    if (now - lastRequestAt < requestCooldown) {
+      refreshQueued = true;
+      clearTimeout(timer);
+      timer = setTimeout(refresh, requestCooldown - (now - lastRequestAt));
+      return;
+    }
+    var bbox = south + ',' + west + ',' + north + ',' + east;
     var mySeq = ++reqSeq;
-    fetchFrom(OVERPASS_URLS, 0, query)
-      .then(function(data){
+    requestInFlight = true;
+    refreshQueued = false;
+    lastRequestAt = now;
+    if (abortController) abortController.abort();
+    abortController = window.AbortController ? new AbortController() : null;
+    fetchAddresses([west, south, east, north].join(','), abortController && abortController.signal)
+      .then(function(text){
         if (!on || mySeq !== reqSeq) return; // stale response or toggled off meanwhile
-        var els = (data && data.elements) || [];
+        var els = parseAddressXml(text);
+        if (!els.length) {
+          Toast.show('У поточній області номери будинків не знайдено. Спробуйте зсунути або наблизити карту.', null);
+          return;
+        }
         if (els.length > maxResults) {
           Toast.show('Забагато будинків у видимій області (' + els.length + '). Наблизьте карту ще трохи.', 'error');
           return;
         }
+        layer.clearLayers();
+        var seen = {};
         els.forEach(function(el){
-          var lat = el.type === 'node' ? el.lat : (el.center && el.center.lat);
-          var lon = el.type === 'node' ? el.lon : (el.center && el.center.lon);
-          var num = el.tags && el.tags['addr:housenumber'];
+          var lat = el.lat;
+          var lon = el.lon;
+          var num = el.number;
           if (lat == null || lon == null || !num) return;
-          L.marker([lat, lon], { icon: labelIcon(num), interactive: false, keyboard: false }).addTo(layer);
+          var key = Number(lat).toFixed(6) + ':' + Number(lon).toFixed(6) + ':' + num;
+          if (seen[key]) return;
+          seen[key] = true;
+          L.marker([lat, lon], { icon: labelIcon(num), interactive: false, keyboard: false, zIndexOffset: 1000, pane: 'markerPane' }).addTo(layer);
         });
       })
       .catch(function(){
-        if (mySeq !== reqSeq) return;
-        Toast.show('Не вдалося завантажити номери будинків (жоден дзеркальний сервер Overpass не відповів). Спробуйте пізніше.', 'error');
+        if (mySeq !== reqSeq || !on) return;
+        Toast.show('Не вдалося завантажити номери будинків через локальний proxy Overpass. Спробуйте пізніше.', 'error');
+      })
+      .finally(function(){
+        requestInFlight = false;
+        abortController = null;
+        if (on && refreshQueued) {
+          clearTimeout(timer);
+          timer = setTimeout(refresh, requestCooldown);
+        }
       });
   }
 
   function scheduleRefresh(){
     if (!on) return;
+    refreshQueued = true;
     clearTimeout(timer);
-    timer = setTimeout(refresh, 600);
+    timer = setTimeout(refresh, 700);
   }
 
   function enable(){
@@ -758,6 +837,10 @@ var HouseNumbers = (function(){
   function disable(){
     on = false;
     reqSeq++; // invalidate any in-flight request
+    if (abortController) abortController.abort();
+    abortController = null;
+    requestInFlight = false;
+    refreshQueued = false;
     clearTimeout(timer);
     layer.clearLayers();
     map.removeLayer(layer);
@@ -1077,8 +1160,10 @@ function renderAddrList(){
 var addrSearchInput = document.getElementById('inAddrSearch');
 var addrResultsBox = document.getElementById('addrResults');
 var addrSearchTimer = null;
+var addrSearchSeq = 0;
 addrSearchInput.addEventListener('input', function(){
   var q = addrSearchInput.value.trim();
+  addrSearchSeq++;
   clearTimeout(addrSearchTimer);
   if (q.length < 3) { addrResultsBox.style.display = 'none'; return; }
   addrSearchTimer = setTimeout(function(){ runAddrSearch(q); }, 500);
@@ -1087,6 +1172,7 @@ document.addEventListener('click', function(e){
   if (!e.target.closest('.search-wrap')) addrResultsBox.style.display = 'none';
 });
 function runAddrSearch(q){
+  var searchSeq = addrSearchSeq;
   var b = map.getBounds();
   var viewbox = [b.getWest(), b.getNorth(), b.getEast(), b.getSouth()].join(',');
   var url = 'https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=0&limit=6&accept-language=uk&viewbox=' + viewbox + '&q=' + encodeURIComponent(q);
@@ -1095,6 +1181,7 @@ function runAddrSearch(q){
   fetch(url, { headers: { 'Accept': 'application/json' } })
     .then(function(r){ return r.json(); })
     .then(function(list){
+      if (searchSeq !== addrSearchSeq || q !== addrSearchInput.value.trim()) return;
       addrResultsBox.innerHTML = '';
       if (!list || !list.length) { addrResultsBox.innerHTML = '<div class="sr-empty">Нічого не знайдено.</div>'; return; }
       list.forEach(function(place){
@@ -1111,6 +1198,7 @@ function runAddrSearch(q){
       });
     })
     .catch(function(){
+      if (searchSeq !== addrSearchSeq) return;
       addrResultsBox.innerHTML = '<div class="sr-empty">Помилка пошуку. Спробуйте ще раз.</div>';
     });
 }
@@ -1279,11 +1367,17 @@ function parseManyLines(text){
 /* ============================================================
    PROJECTS: save / save-as / load / delete
    ============================================================ */
-function persist(){ dirty = true; persistWorkspace(); updateProjectHeader(); }
+function persist(){ dirty = true; persistWorkspace(); updateProjectHeader(); updateToolbarState(); }
 function updateProjectHeader(){
   var el = document.getElementById('projectName');
   el.textContent = currentProjectName || 'Без збереження';
   el.classList.toggle('unsaved', dirty);
+}
+function updateToolbarState(){
+  var btnSave = document.getElementById('btnSave');
+  var btnNew = document.getElementById('btnNew');
+  if (btnSave) btnSave.disabled = !dirty || !currentProjectName;
+  if (btnNew) btnNew.disabled = !(state.bs.length || state.addresses.length || !!currentProjectName);
 }
 
 function snapshotWorkspace(){
@@ -1294,7 +1388,7 @@ function saveCurrent(){
   var projects = getProjects();
   projects[currentProjectName] = snapshotWorkspace();
   setProjects(projects);
-  dirty = false; persistWorkspace(); updateProjectHeader(); renderSaveList();
+  dirty = false; persistWorkspace(); updateProjectHeader(); updateToolbarState(); renderSaveList();
   Toast.show('Проєкт «' + currentProjectName + '» збережено.', 'success');
 }
 function saveAs(){
@@ -1303,7 +1397,7 @@ function saveAs(){
     projects[name] = snapshotWorkspace();
     setProjects(projects);
     currentProjectName = name;
-    dirty = false; persistWorkspace(); updateProjectHeader(); renderSaveList();
+    dirty = false; persistWorkspace(); updateProjectHeader(); updateToolbarState(); renderSaveList();
     Toast.show('Проєкт «' + name + '» збережено.', 'success');
   });
 }
@@ -1316,6 +1410,7 @@ function loadProject(name){
   state.view = p.view || state.view; state.tileLayer = p.tileLayer || state.tileLayer;
   currentProjectName = name; dirty = false;
   applyLoadedState();
+  updateToolbarState();
   Toast.show('Проєкт «' + name + '» завантажено.', 'success');
 }
 function deleteProject(name){
@@ -1325,6 +1420,7 @@ function deleteProject(name){
     setProjects(projects);
     if (currentProjectName === name) { currentProjectName = null; persistWorkspace(); updateProjectHeader(); }
     renderSaveList();
+    updateToolbarState();
     Toast.show('Проєкт видалено.', null);
   });
 }
@@ -1372,12 +1468,13 @@ document.getElementById('btnNew').addEventListener('click', function(){
 });
 document.getElementById('btnHome').addEventListener('click', function(){
   map.setView(HOME_VIEW.center, HOME_VIEW.zoom);
+  Toast.show('Повернуто до Миколаєва.', null);
 });
 function startNew(){
   clearAllLayers();
   state.bs = []; state.addresses = [];
   currentProjectName = null; dirty = false;
-  persistWorkspace(); updateProjectHeader(); renderBSList(); renderAddrList();
+  persistWorkspace(); updateProjectHeader(); updateToolbarState(); renderBSList(); renderAddrList();
   Toast.show('Створено новий проєкт.', null);
 }
 
@@ -1572,140 +1669,7 @@ renderBSList();
 renderAddrList();
 renderSaveList();
 updateProjectHeader();
-var EXPORT_UNSUPPORTED_LAYERS = {};
-var TILE_ATTR_TEXT = {
-  streets: 'Tiles © Esri — Esri, HERE, Garmin, FAO, NOAA, USGS',
-  gray: 'Tiles © Esri — Esri, HERE, Garmin, FAO, NOAA, USGS',
-  dark: 'Tiles © Esri — Esri, HERE, Garmin, FAO, NOAA, USGS',
-  topo: 'Tiles © Esri — Esri, HERE, Garmin, FAO, NOAA, USGS',
-  imagery: 'Tiles © Esri — Esri, HERE, Garmin, FAO, NOAA, USGS'
-};
-
-function hexToRgba(hex, alpha){
-  hex = String(hex || '#7c9cff').replace('#','');
-  if (hex.length === 3) hex = hex.split('').map(function(c){ return c + c; }).join('');
-  var r = parseInt(hex.substring(0,2),16) || 0, g = parseInt(hex.substring(2,4),16) || 0, b = parseInt(hex.substring(4,6),16) || 0;
-  return 'rgba(' + r + ',' + g + ',' + b + ',' + alpha + ')';
-}
-
-async function renderMapCanvas(){
-  if (EXPORT_UNSUPPORTED_LAYERS[state.tileLayer]) {
-    Toast.show('Шар «' + EXPORT_UNSUPPORTED_LAYERS[state.tileLayer] + '» не підтримує експорт зображення. Оберіть інший шар, напр. «Вулиці (Esri)».', 'error');
-    return null;
-  }
-
-  var container = map.getContainer();
-  var width = container.clientWidth;
-  var height = container.clientHeight;
-
-  var canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = height;
-  var ctx = canvas.getContext('2d');
-
-  // 1. Малюємо завантажені тайли карти
-  var tileImgs = container.querySelectorAll('.leaflet-tile-container img');
-  var mapRect = container.getBoundingClientRect();
-
-  for (var img of tileImgs) {
-    if (!img.complete || img.naturalWidth === 0) continue;
-    var rect = img.getBoundingClientRect();
-    var x = rect.left - mapRect.left;
-    var y = rect.top - mapRect.top;
-    try {
-      ctx.drawImage(img, x, y, rect.width, rect.height);
-    } catch (e) {
-      // Ігноруємо поодинокі тайли з CORS помилками
-    }
-  }
-
-  // 2. Малюємо сектори БС
-  state.bs.forEach(function(item){
-    var centerPt = map.latLngToContainerPoint([item.lat, item.lng]);
-    var latLngs = sectorLatLngs(item.lat, item.lng, item.azimuth, item.beam, item.radius);
-    
-    if (latLngs.length < 2) return;
-
-    ctx.beginPath();
-    var firstPt = map.latLngToContainerPoint(latLngs[0]);
-    ctx.moveTo(firstPt.x, firstPt.y);
-
-    for (var i = 1; i < latLngs.length; i++) {
-      var pt = map.latLngToContainerPoint(latLngs[i]);
-      ctx.lineTo(pt.x, pt.y);
-    }
-    ctx.closePath();
-
-    ctx.fillStyle = hexToRgba(item.color, 0.28);
-    ctx.fill();
-    ctx.strokeStyle = item.color;
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-
-    // Малюємо маркер центра БС
-    ctx.beginPath();
-    ctx.arc(centerPt.x, centerPt.y, 5, 0, 2 * Math.PI);
-    ctx.fillStyle = item.color;
-    ctx.fill();
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-  });
-
-  // 3. Малюємо адреси
-  state.addresses.forEach(function(item){
-    var pt = map.latLngToContainerPoint([item.lat, item.lng]);
-    ctx.beginPath();
-    ctx.arc(pt.x, pt.y, 6, 0, 2 * Math.PI);
-    ctx.fillStyle = '#0f8f83';
-    ctx.fill();
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 2;
-    ctx.stroke();
-  });
-
-  // 4. Додаємо копирайт / атрибуцію в кутку
-  ctx.font = '10px sans-serif';
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
-  ctx.fillRect(width - 260, height - 22, 255, 18);
-  ctx.fillStyle = '#ffffff';
-  ctx.fillText(TILE_ATTR_TEXT[state.tileLayer] || 'BSMAP Export', width - 255, height - 9);
-
-  return canvas;
-}
-
-// Події кнопок експорту
-document.getElementById('btnExportPng').addEventListener('click', async function(){
-  Toast.show('Формування PNG…', null);
-  var canvas = await renderMapCanvas();
-  if (!canvas) return;
-  canvas.toBlob(function(blob){
-    triggerDownload(blob, (currentProjectName || 'bsmap') + '.png');
-    Toast.show('PNG карти збережено.', 'success');
-  });
-});
-
-document.getElementById('btnExportPdf').addEventListener('click', async function(){
-  Toast.show('Формування PDF…', null);
-  var canvas = await renderMapCanvas();
-  if (!canvas) return;
-
-  var imgData = canvas.toDataURL('image/png');
-  var { jsPDF } = window.jspdf;
-  
-  var orientation = canvas.width > canvas.height ? 'l' : 'p';
-  var pdf = new jsPDF(orientation, 'pt', [canvas.width, canvas.height]);
-  pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
-  pdf.save((currentProjectName || 'bsmap') + '.pdf');
-  
-  Toast.show('PDF карти збережено.', 'success');
-});
-
-// Ініціалізація списків при завантаженні
-renderBSList();
-renderAddrList();
-renderSaveList();
-updateProjectHeader();
+updateToolbarState();
 </script>
 </body>
 </html>
