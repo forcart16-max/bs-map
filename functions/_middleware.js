@@ -17,6 +17,11 @@ export async function onRequest(context) {
   const adminUser = env.AUTH_ADMIN;
   const adminPass = env.AUTH_ADPASS;
 
+  const pathname = new URL(request.url).pathname;
+  if (pathname.startsWith('/api/overpass') || pathname.startsWith('/api/addresses')) {
+    return context.next();
+  }
+
   // Захист від відсутності конфігурації
   if ((!user || !pass) && (!adminUser || !adminPass)) {
     return new Response(
